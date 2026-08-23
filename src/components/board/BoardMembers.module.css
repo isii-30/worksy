@@ -1,0 +1,25 @@
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal { background: #fff; border-radius: 16px; padding: 32px; width: 620px; max-width: 92vw; position: relative; }
+.closeBtn { position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 18px; cursor: pointer; }
+.title { font-size: 26px; font-weight: 800; margin: 0 0 4px; }
+.subtitle { color: #6b7280; margin: 0 0 20px; }
+.searchRow { display: flex; gap: 12px; margin-bottom: 16px; }
+.searchInput { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 14px; }
+.addBtn { background: #2f3c88; color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-weight: 700; cursor: pointer; }
+.list { border-top: 1px solid #e5e7eb; }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e5e7eb; }
+.person { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: #c4b5fd; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.adminTag { background: #dcfce7; color: #166534; font-size: 12px; padding: 2px 8px; border-radius: 8px; margin-left: 6px; }
+.removeBtn { background: none; border: none; cursor: pointer; opacity: 0.8; }
+.removeBtn:disabled { opacity: 0.25; cursor: not-allowed; }
+.illustration {
+  position: absolute;
+  top: 24px;
+  right: 56px;
+  width: 80px;
+  height: auto;
+}

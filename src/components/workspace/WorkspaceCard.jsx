@@ -5,9 +5,9 @@ import editIcon from "../../assets/edit-icon.svg";
 import { memberAvatars } from "../../data/mock/workspaces";
 import "./WorkspaceCard.css";
 
-export default function WorkspaceCard({ workspace, onEdit }) {
+export default function WorkspaceCard({ workspace, onEdit, onOpen }) {
   return (
-    <article className="workspace-box">
+    <article className="workspace-box" onClick={() => onOpen?.(workspace)}>
       <div className="workspace-box-top">
         <span className="member-chip">
           <img src={personIcon} alt="" className="member-chip-icon" />
@@ -20,7 +20,7 @@ export default function WorkspaceCard({ workspace, onEdit }) {
           <button
             className="workspace-edit-button"
             type="button"
-            onClick={onEdit}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
             aria-label={`Edit ${workspace.name}`}
           >
             <img src={editIcon} alt="Edit" className="workspace-edit-icon" />
@@ -56,7 +56,6 @@ export default function WorkspaceCard({ workspace, onEdit }) {
             style={{ zIndex: index + 1 }}
           />
         ))}
-
         <span className="more-avatar">...</span>
       </div>
 
