@@ -1,0 +1,20 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-content {
+    padding-bottom: 72px;
+  }
+}

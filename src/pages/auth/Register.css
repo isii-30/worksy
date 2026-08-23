@@ -1,0 +1,177 @@
+.register__back {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.register__back:hover {
+  background: var(--color-bg-app);
+}
+
+.auth-layout__content h1 {
+  margin: 0 0 6px;
+  font-size: clamp(24px, 4vh, 32px);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.register__subtitle {
+  margin: 0 0 clamp(45px, 4vh, 40px);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.register__form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vh, 18px);
+}
+
+.register__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.register__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* No icon now, so a small-caps label style carries the "professional form"
+   feel that the icons used to add on their own. */
+.register__field-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.register__field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.register__field input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.register__field--error input {
+  border-color: var(--color-danger);
+}
+
+.register__field-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+.register__password-wrap {
+  position: relative;
+}
+
+.register__password-wrap input {
+  padding-right: 42px;
+}
+
+.register__eye {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.register__eye:hover {
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+}
+
+.register__eye:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+.register__eye--active {
+  color: var(--color-accent);
+}
+
+.register__eye--active:hover {
+  background: rgba(79, 70, 229, 0.08);
+}
+
+.register__submit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: clamp(11px, 1.8vh, 14px);
+  margin-top: 38px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-bg-sidebar);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.register__submit:hover {
+  background: #182338;
+}
+
+/* First/Last name side by side gets tight on narrow screens */
+@media (max-width: 420px) {
+  .register__row {
+    grid-template-columns: 1fr;
+    gap: clamp(12px, 2vh, 18px);
+  }
+}
+
+.register__suggestion {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.register__suggestion:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,234 @@
+.login__top-link {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.auth-layout__content h1 {
+  margin: 0 0 6px;
+  font-size: clamp(24px, 4vh, 32px);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.login__subtitle {
+  margin: 0 0 clamp(45px, 4vh, 40px);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vh, 18px);
+}
+
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login__field-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.login__field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login__field input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.login__field--error input {
+  border-color: var(--color-danger);
+}
+
+.login__field-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+.login__password-wrap {
+  position: relative;
+}
+
+.login__password-wrap input {
+  padding-right: 42px;
+}
+
+.login__eye {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.login__eye:hover {
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+}
+
+.login__eye:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+.login__eye--active {
+  color: var(--color-accent);
+}
+
+.login__eye--active:hover {
+  background: rgba(79, 70, 229, 0.08);
+}
+
+.login__field-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.login__forgot {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.login__forgot:hover {
+  text-decoration: underline;
+}
+
+.login__submit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: clamp(11px, 1.8vh, 14px);
+  margin-top: 38px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-bg-sidebar);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.login__submit:hover {
+  background: #182338;
+}
+
+.login__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.login__divider span {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.login__divider p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.login__google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: clamp(10px, 1.6vh, 13px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.login__google:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg-app);
+}
+
+.login__link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-accent);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Top-right link would overlap the form on narrow screens */
+@media (max-width: 860px) {
+  .login__top-link {
+    position: static;
+    text-align: right;
+    margin-bottom: 16px;
+  }
+}
+
+.login__suggestion {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.login__suggestion:hover {
+  text-decoration: underline;
+}
