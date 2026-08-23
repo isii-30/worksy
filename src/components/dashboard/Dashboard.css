@@ -1,0 +1,494 @@
+/* =========================================================
+   DASHBOARD DESIGN TOKENS
+   Dashboard-specific only.
+   ========================================================= */
+
+.dashboard-page {
+  --dashboard-background: #24293d;
+  --dashboard-surface: #ffffff;
+
+  --dashboard-primary: #3f51b5;
+  --dashboard-primary-light: #eef1ff;
+
+  --dashboard-text: #252a40;
+  --dashboard-text-muted: #737373;
+  --dashboard-border: #3f51b5;
+
+  --dashboard-danger-bg: #fde8e8;
+  --dashboard-danger-text: #c62828;
+
+  --dashboard-warning-bg: #fff4d6;
+  --dashboard-warning-text: #a66b00;
+
+  --dashboard-success-bg: #e5f6e8;
+  --dashboard-success-text: #2e7d32;
+
+  --dashboard-chart-grid: #e6e8f0;
+  --dashboard-chart-secondary: #aab4cc;
+
+  --dashboard-radius-sm: 8px;
+  --dashboard-radius-md: 12px;
+  --dashboard-radius-lg: 16px;
+
+  --dashboard-spacing-sm: 8px;
+  --dashboard-spacing-md: 16px;
+  --dashboard-spacing-lg: 24px;
+  --dashboard-spacing-xl: 32px;
+
+  --dashboard-font-xs: 12px;
+  --dashboard-font-sm: 14px;
+  --dashboard-font-md: 16px;
+  --dashboard-font-lg: 18px;
+  --dashboard-font-xl: 24px;
+  --dashboard-font-2xl: 28px;
+  --dashboard-font-3xl: 32px;
+
+  --dashboard-weight-normal: 400;
+  --dashboard-weight-medium: 500;
+  --dashboard-weight-semibold: 600;
+  --dashboard-weight-bold: 700;
+
+  min-height: 100%;
+  background: var(--dashboard-background);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.dashboard-header {
+  min-height: 120px;
+  padding: 28px 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+
+  font-size: var(--dashboard-font-2xl);
+  font-weight: var(--dashboard-weight-bold);
+
+  color: #ffffff;
+}
+
+.dashboard-header p {
+  margin: 6px 0 0;
+
+  font-size: var(--dashboard-font-sm);
+  color: #c7c9d3;
+}
+
+
+/* =========================================================
+   WHITE DASHBOARD CONTENT AREA
+   ========================================================= */
+
+.dashboard-content-area {
+  min-height: calc(100vh - 120px);
+
+  padding: var(--dashboard-spacing-xl);
+
+  background: var(--dashboard-surface);
+
+  border-radius: 16px 16px 0 0;
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: var(--dashboard-spacing-lg);
+
+  margin-bottom: var(--dashboard-spacing-lg);
+}
+
+.stat-card {
+  background: var(--dashboard-surface);
+
+  border: 1px solid var(--dashboard-primary);
+  border-radius: var(--dashboard-radius-md);
+
+  padding: var(--dashboard-spacing-lg);
+
+  min-height: 145px;
+}
+
+.stat-card h2 {
+  margin: 0;
+
+  font-size: var(--dashboard-font-md);
+  font-weight: var(--dashboard-weight-medium);
+
+  color: var(--dashboard-text);
+}
+
+.stat-value {
+  margin: var(--dashboard-spacing-md) 0 4px;
+
+  font-size: var(--dashboard-font-3xl);
+  font-weight: var(--dashboard-weight-bold);
+
+  color: #000000;
+}
+
+.stat-card span {
+  font-size: var(--dashboard-font-sm);
+
+  color: var(--dashboard-text-muted);
+}
+
+
+/* =========================================================
+   MAIN DASHBOARD GRID
+   ========================================================= */
+
+.dashboard-grid {
+  display: grid;
+
+  grid-template-columns: 1.2fr 1.3fr 1.2fr;
+
+  gap: var(--dashboard-spacing-lg);
+
+  margin-top: var(--dashboard-spacing-lg);
+}
+
+
+/* =========================================================
+   MAIN DASHBOARD CARDS
+   ========================================================= */
+
+.overview-card,
+.upcoming-deadlines,
+.team-activity {
+  background: var(--dashboard-surface);
+
+  border: 2px solid var(--dashboard-primary);
+  border-radius: var(--dashboard-radius-md);
+
+  padding: var(--dashboard-spacing-lg);
+}
+
+
+/* =========================================================
+   SECTION HEADINGS
+   ========================================================= */
+
+.section-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: var(--dashboard-spacing-lg);
+}
+
+.section-heading h2 {
+  margin: 0;
+
+  font-size: var(--dashboard-font-lg);
+  font-weight: var(--dashboard-weight-semibold);
+
+  color: var(--dashboard-text);
+}
+
+.section-heading button {
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  font-size: var(--dashboard-font-xs);
+  font-weight: var(--dashboard-weight-semibold);
+
+  color: var(--dashboard-primary);
+}
+
+
+/* =========================================================
+   OVERVIEW CHART
+   ========================================================= */
+
+.overview-chart {
+  width: 100%;
+  margin-top: 10px;
+}
+
+
+/* =========================================================
+   UPCOMING DEADLINES
+   ========================================================= */
+
+.deadline-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.deadline-item {
+  display: grid;
+
+  grid-template-columns: 50px 1fr auto;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.deadline-date {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: var(--dashboard-radius-sm);
+
+  background: var(--dashboard-primary-light);
+
+  color: var(--dashboard-primary);
+}
+
+.deadline-date strong {
+  font-size: var(--dashboard-font-md);
+
+  line-height: 1;
+}
+
+.deadline-date span {
+  margin-top: 3px;
+
+  font-size: var(--dashboard-font-xs);
+
+  font-weight: var(--dashboard-weight-semibold);
+}
+
+.deadline-info h3 {
+  margin: 0 0 4px;
+
+  font-size: var(--dashboard-font-sm);
+  font-weight: var(--dashboard-weight-semibold);
+
+  color: var(--dashboard-text);
+}
+
+.deadline-info p {
+  margin: 0;
+
+  font-size: var(--dashboard-font-xs);
+
+  color: var(--dashboard-text-muted);
+}
+
+.deadline-meta {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  gap: 5px;
+}
+
+.deadline-meta span {
+  font-size: var(--dashboard-font-xs);
+}
+
+
+/* =========================================================
+   PRIORITY BADGES
+   ========================================================= */
+
+.priority {
+  padding: 4px 8px;
+
+  border-radius: 6px;
+
+  font-size: var(--dashboard-font-xs) !important;
+  font-weight: var(--dashboard-weight-medium);
+}
+
+.priority-high {
+  background: var(--dashboard-danger-bg);
+  color: var(--dashboard-danger-text);
+}
+
+.priority-medium {
+  background: var(--dashboard-warning-bg);
+  color: var(--dashboard-warning-text);
+}
+
+.priority-low {
+  background: var(--dashboard-success-bg);
+  color: var(--dashboard-success-text);
+}
+
+
+/* =========================================================
+   TEAM ACTIVITY
+   ========================================================= */
+
+.team-activity {
+  margin-top: 0;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-item {
+  display: grid;
+
+  grid-template-columns: 40px 1fr auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 16px 0;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.activity-avatar {
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: var(--dashboard-primary-light);
+
+  color: var(--dashboard-primary);
+
+  font-weight: var(--dashboard-weight-semibold);
+}
+
+.activity-content p {
+  margin: 0 0 4px;
+
+  font-size: var(--dashboard-font-sm);
+
+  color: var(--dashboard-text);
+}
+
+.activity-content span {
+  font-size: var(--dashboard-font-xs);
+
+  color: var(--dashboard-text-muted);
+}
+
+.activity-item time {
+  font-size: var(--dashboard-font-xs);
+
+  color: var(--dashboard-text-muted);
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-activity {
+    grid-column: 1 / -1;
+  }
+}
+
+
+@media (max-width: 800px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-activity {
+    grid-column: auto;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header {
+    padding: 24px 20px;
+  }
+
+  .dashboard-header h1 {
+    font-size: var(--dashboard-font-xl);
+  }
+
+  .dashboard-header p {
+    font-size: var(--dashboard-font-xs);
+  }
+
+  .dashboard-content-area {
+    padding: 20px;
+  }
+
+  .deadline-item {
+    grid-template-columns: 45px 1fr;
+  }
+
+  .deadline-meta {
+    grid-column: 2;
+    align-items: flex-start;
+  }
+
+  .activity-item {
+    grid-template-columns: 36px 1fr;
+  }
+
+  .activity-item time {
+    grid-column: 2;
+  }
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--dashboard-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profile-icon:hover {
+  background: var(--dashboard-border);
+}
