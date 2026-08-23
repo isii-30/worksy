@@ -1,0 +1,297 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  /* font-family: 'Inter', Helvetica, sans-serif; */
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.kanban-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  background: #ffffff;
+}
+
+.kanban-main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.board-header {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px 0 32px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.board-header h1 {
+  margin: 0;
+  color: #27334a;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.board-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.search-box {
+  width: 220px;
+  height: 38px;
+  border: 1px solid #b9bdc3;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  color: #50545a;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #222222;
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: #555555;
+}
+
+.header-button {
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #2854b5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.header-button:hover {
+  background: #21479b;
+}
+
+.header-more-wrapper {
+  position: relative;
+  margin-left: 6px;
+}
+
+.header-more-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e1e1e;
+  cursor: pointer;
+}
+
+.header-more-btn:hover {
+  background: #f0f2f5;
+}
+
+.header-more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 170px;
+  background: #ffffff;
+  border: 1px solid #e4e6ee;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(17, 24, 51, 0.16);
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  z-index: 20;
+}
+
+.header-more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #27334a;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.header-more-menu-item:hover {
+  background: #f2f4fa;
+}
+
+
+/* =========================
+   SUMMARY
+========================= */
+
+.board-summary {
+  height: 96px;
+  border-bottom: 1px solid #dfe3e6;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  padding: 0 20px 0 32px;
+}
+
+.board-name {
+  width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.board-document-icon {
+  color: #2854b5;
+  display: flex;
+  align-items: center;
+}
+
+.board-name h2 {
+  margin: 0;
+  color: #2854b5;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.stat-card {
+  width: 108px;
+  height: 68px;
+  border: 1px solid #d3d7dc;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card span {
+  color: #4e5155;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.stat-card strong {
+  color: #111111;
+  font-size: 22px;
+  line-height: 22px;
+}
+
+.stat-card.overdue strong {
+  color: #ff5151;
+}
+
+
+/* =========================
+   KANBAN BOARD
+========================= */
+
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  height: calc(100vh - 180px);
+  overflow-x: auto;
+}
+
+.kanban-board > * {
+  flex: 1;
+  min-width: 280px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .board-summary {
+    gap: 20px;
+  }
+
+  .board-name {
+    width: 130px;
+  }
+
+  .stat-card {
+    width: 90px;
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .logo-text,
+  .sidebar-item span {
+    display: none;
+  }
+
+  .sidebar-item {
+    justify-content: center;
+  }
+
+  .board-header h1 {
+    font-size: 24px;
+  }
+
+  .board-header-actions {
+    gap: 8px;
+  }
+
+  .header-button span {
+    display: none;
+  }
+
+  .header-button {
+    width: 40px;
+    padding: 0;
+  }
+
+  .board-summary {
+    overflow-x: auto;
+  }
+
+  .kanban-board {
+    overflow-x: auto;
+  }
+
+  .kanban-column {
+    min-width: 240px;
+  }
+}

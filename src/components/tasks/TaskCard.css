@@ -1,0 +1,102 @@
+.task-card {
+  background: #ffffff;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+  min-height: 69px;
+  padding: 9px 9px 7px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.task-card:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.task-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.task-card-top h3 {
+  margin: 0;
+  color: #111111;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
+.task-menu-icon {
+  color: #111111;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.completed-icon {
+  color: #20bb28;
+  flex-shrink: 0;
+}
+
+.task-card-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.task-category {
+  display: inline-flex;
+  align-items: center;
+  height: 13px;
+  padding: 0 10px;
+  border-radius: 5px;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.category-blue {
+  background: #a5f1f7;
+  color: #147b86;
+}
+
+.category-green {
+  background: #bdf7b9;
+  color: #247b24;
+}
+
+.category-orange {
+  background: #ffd8ae;
+  color: #c46b08;
+}
+
+.category-red {
+  background: #ffb9c0;
+  color: #c82938;
+}
+
+.category-purple {
+  background: #f5c8f4;
+  color: #9a1d91;
+}
+
+.category-gray {
+  background: #e0e4e3;
+  color: #646b6a;
+}
+
+.task-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #222222;
+  font-size: 7px;
+}
+
+.task-card {
+  cursor: grab;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
