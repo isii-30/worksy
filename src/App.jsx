@@ -14,7 +14,7 @@ import Workspace from './pages/workspace/Workspace';
 import BoardList from './pages/board/BoardList';
 import KanbanBoard from './pages/tasks/KanbanBoard';
 import Notifications from './pages/notifications/Notifications';
-import CalendarPage from './pages/calendar/CalendarPage';
+import Calendar from './pages/calendar/Calendar';
 
 function App() {
   return (
@@ -32,7 +32,7 @@ function App() {
           <Route path="/boards" element={<BoardList />} />
           <Route path="/boards/:boardId" element={<KanbanBoard />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/calendar" element={<Calendar />} />
         </Route>
       </Routes>
     </BrowserRouter>
