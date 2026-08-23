@@ -1,0 +1,182 @@
+/* ============================================================
+   WORKSPACE CARD — Figma exact styling
+   Card dimensions: 229 × 304
+   ============================================================ */
+
+.workspace-box {
+  width: 229px;
+  height: 304px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 16px 18px 16px;
+}
+
+.workspace-box:hover {
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Top row: role badge + lock/edit */
+.workspace-box-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  min-height: 22px;
+}
+
+.member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #f0f9ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.member-chip-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.workspace-lock-icon {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.workspace-edit-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-edit-icon {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.workspace-edit-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Initials avatar box: 85 × 80, radius 10 */
+.workspace-avatar {
+  width: 85px;
+  height: 80px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 4px auto 10px;
+  letter-spacing: 0.5px;
+}
+
+/* Card title */
+.workspace-box h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+/* Info row */
+.workspace-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.group-icon-svg {
+  width: 13px;
+  height: 12px;
+  display: block;
+}
+
+/* Member avatars */
+.member-avatars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.member-avatars img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  object-fit: cover;
+  margin-left: -5px;
+}
+
+.member-avatars img:first-child {
+  margin-left: 0;
+}
+
+.more-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  margin-left: -5px;
+}
+
+/* Description */
+.workspace-description {
+  margin: 0;
+  color: #8495bb;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
