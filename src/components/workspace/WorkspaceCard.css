@@ -26,7 +26,7 @@
   transform: translateY(-2px);
 }
 
-/* Top row: role badge + lock/edit */
+/* Top row: role badge + lock/edit/members */
 .workspace-box-top {
   width: 100%;
   display: flex;
@@ -55,6 +55,14 @@
   display: block;
 }
 
+/* Wraps the lock/edit icon and the new members icon so they sit
+   side by side in the top-right corner */
+.workspace-box-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .workspace-lock-icon {
   width: 13px;
   height: 13px;
@@ -80,6 +88,23 @@
 }
 
 .workspace-edit-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.workspace-members-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.workspace-members-button:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 

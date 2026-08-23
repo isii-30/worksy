@@ -1,0 +1,192 @@
+.member-row {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+
+  align-items: center;
+
+  height: 58px;
+
+  padding: 0 10px;
+
+  border-bottom: 1px solid #d5d5d5;
+
+  box-sizing: border-box;
+
+  font-family: "Poppins", sans-serif;
+}
+
+
+/* =========================
+   MEMBER
+========================= */
+
+.member-info {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+
+  margin-right: 18px;
+
+  border-radius: 50%;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #dfe5f5;
+
+  color: #3157b7;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.member-name {
+  color: #242424;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 16px;
+  font-weight: 400;
+
+  white-space: nowrap;
+}
+
+
+/* =========================
+   RIGHT SIDE
+========================= */
+
+.member-role-area {
+  display: flex;
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+}
+
+
+/* =========================
+   BOARD BUTTON
+========================= */
+
+.board-role-button {
+  width: 150px;
+  height: 41px;
+
+  padding: 0 14px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #dfe8ea;
+
+  color: #626668;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+
+/* =========================
+   THREE DOTS
+========================= */
+
+.member-menu-container {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+}
+
+.member-more-button {
+  width: 28px;
+  height: 40px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #111;
+
+  font-size: 25px;
+  font-weight: 600;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+/* =========================
+   DELETE MENU
+========================= */
+
+.member-dropdown-menu {
+  position: absolute;
+
+  top: 38px;
+  right: 0;
+
+  width: 90px;
+
+  padding: 5px;
+
+  background: #ffffff;
+
+  border: 1px solid #dddddd;
+  border-radius: 7px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+  z-index: 100;
+}
+
+.member-dropdown-menu button {
+  width: 100%;
+
+  padding: 8px;
+
+  border: none;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #d73535;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 12px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.member-dropdown-menu button:hover {
+  background: #fff0f0;
+}
