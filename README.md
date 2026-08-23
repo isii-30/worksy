@@ -101,8 +101,8 @@ Everything under `/dashboard` and below shares a common `Sidebar` via `AppLayout
 | Dilmani | Board Management |
 | Nimesha Wijegunawardana | Kanban Board & Task Management |
 | Pawani Jayakody | Calendar & Notifications |
-| Maggie | Dashboard |
-| — | Workspace Management |
+| Vageesha Jayasingha | Dashboard |
+| Senuja Ekanayaka| Workspace Management |
 
 ---
 
