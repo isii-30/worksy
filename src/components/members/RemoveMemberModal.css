@@ -1,0 +1,124 @@
+.remove-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(3, 15, 35, 0.65);
+
+  z-index: 2000;
+
+  font-family: "Poppins", sans-serif;
+}
+
+.remove-member-modal {
+  width: 390px;
+
+  padding: 32px;
+
+  background: #ffffff;
+
+  border-radius: 16px;
+
+  text-align: center;
+
+  box-sizing: border-box;
+
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+}
+
+.remove-icon {
+  width: 45px;
+  height: 45px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ffe4e4;
+  color: #d72f2f;
+
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.remove-member-modal h2 {
+  margin: 0 0 12px;
+
+  color: #1d1d1d;
+
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.remove-member-modal p {
+  margin: 0 auto 8px;
+
+  max-width: 310px;
+
+  color: #707070;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.remove-member-modal strong {
+  color: #222;
+}
+
+.remove-warning {
+  font-size: 11px !important;
+
+  color: #a0a0a0 !important;
+}
+
+.remove-modal-actions {
+  display: flex;
+  justify-content: center;
+
+  gap: 12px;
+
+  margin-top: 25px;
+}
+
+.remove-cancel-button,
+.remove-confirm-button {
+  height: 40px;
+
+  padding: 0 22px;
+
+  border-radius: 7px;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.remove-cancel-button {
+  border: 1px solid #d8d8d8;
+
+  background: #ffffff;
+
+  color: #333;
+}
+
+.remove-confirm-button {
+  border: none;
+
+  background: #d93636;
+
+  color: #ffffff;
+}
+
+.remove-confirm-button:hover {
+  background: #bd2828;
+}

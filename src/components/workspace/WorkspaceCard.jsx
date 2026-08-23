@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import lockIcon from "../../assets/lock-icon.svg";
 import personIcon from "../../assets/person-icon.svg";
 import groupIcon from "../../assets/group-icon.svg";
@@ -5,7 +6,7 @@ import editIcon from "../../assets/edit-icon.svg";
 import { memberAvatars } from "../../data/mock/workspaces";
 import "./WorkspaceCard.css";
 
-export default function WorkspaceCard({ workspace, onEdit, onOpen }) {
+export default function WorkspaceCard({ workspace, onEdit, onOpen, onManageMembers }) {
   return (
     <article className="workspace-box" onClick={() => onOpen?.(workspace)}>
       <div className="workspace-box-top">
@@ -14,18 +15,29 @@ export default function WorkspaceCard({ workspace, onEdit, onOpen }) {
           {workspace.role}
         </span>
 
-        {workspace.locked ? (
-          <img src={lockIcon} alt="Locked" className="workspace-lock-icon" />
-        ) : (
+        <div className="workspace-box-actions">
           <button
-            className="workspace-edit-button"
+            className="workspace-members-button"
             type="button"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            aria-label={`Edit ${workspace.name}`}
+            onClick={(e) => { e.stopPropagation(); onManageMembers?.(workspace); }}
+            aria-label={`Manage members of ${workspace.name}`}
           >
-            <img src={editIcon} alt="Edit" className="workspace-edit-icon" />
+            <Users size={16} />
           </button>
-        )}
+
+          {workspace.locked ? (
+            <img src={lockIcon} alt="Locked" className="workspace-lock-icon" />
+          ) : (
+            <button
+              className="workspace-edit-button"
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              aria-label={`Edit ${workspace.name}`}
+            >
+              <img src={editIcon} alt="Edit" className="workspace-edit-icon" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div

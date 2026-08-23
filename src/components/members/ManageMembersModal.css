@@ -1,0 +1,328 @@
+/* =========================================
+   OVERLAY
+========================================= */
+
+.members-modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(3, 15, 35, 0.75);
+
+  z-index: 1000;
+}
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+.manage-members-modal {
+  position: relative;
+
+  width: 935px;
+  height: 875px;
+
+  padding: 75px 58px 35px;
+
+  background: #ffffff;
+
+  border-radius: 28px;
+
+  box-sizing: border-box;
+
+  font-family: "Poppins", sans-serif;
+
+  /* ONLY SIZE CHANGE */
+  transform: scale(0.51);
+  transform-origin: center center;
+}
+
+
+/* =========================================
+   CLOSE BUTTON
+========================================= */
+
+.members-modal-close {
+  position: absolute;
+
+  top: 34px;
+  right: 40px;
+
+  width: 35px;
+  height: 35px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #151515;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 34px;
+  font-weight: 400;
+
+  line-height: 30px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.members-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  height: 170px;
+}
+
+.members-header-text h2 {
+  margin: 0 0 8px;
+
+  color: #050505;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 43px;
+  font-weight: 600;
+
+  line-height: 1.15;
+}
+
+.members-header-text p {
+  margin: 0;
+
+  color: #777777;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 17px;
+  font-weight: 400;
+
+  line-height: 1.55;
+}
+
+.members-header-image {
+  width: 255px;
+  height: 205px;
+
+  object-fit: contain;
+
+  margin-top: -30px;
+  margin-right: 5px;
+}
+
+
+/* =========================================
+   SEARCH + NEW MEMBER
+========================================= */
+
+.members-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 28px;
+}
+
+
+/* SEARCH */
+
+.members-search {
+  display: flex;
+  align-items: center;
+
+  width: 530px;
+  height: 68px;
+
+  background: #ffffff !important;
+
+  border: 1px solid #d5d5d5;
+
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+.search-icon {
+  margin-left: 25px;
+
+  color: #777777;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 30px;
+}
+
+.members-search input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0 20px;
+
+  border: none;
+  outline: none;
+
+  background: #ffffff !important;
+
+  color: #333333;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 17px;
+}
+
+.members-search input::placeholder {
+  color: #777777;
+
+  opacity: 1;
+}
+
+
+/* NEW MEMBER BUTTON */
+
+.new-member-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 225px;
+  height: 68px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #2f55b8;
+
+  color: #ffffff;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.new-member-button span {
+  margin-right: 10px;
+
+  font-size: 35px;
+
+  font-weight: 300;
+}
+
+
+/* =========================================
+   TABLE HEADER
+========================================= */
+
+.members-table-header {
+  display: grid;
+
+  grid-template-columns: 1fr 390px;
+
+  height: 55px;
+
+  padding: 0 10px;
+
+  border-bottom: 2px solid #202020;
+
+  box-sizing: border-box;
+
+  align-items: center;
+
+  color: #111111;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 21px;
+  font-weight: 500;
+}
+
+
+/* =========================================
+   MEMBER LIST
+========================================= */
+
+.members-list {
+  width: 100%;
+}
+
+.no-members {
+  padding: 25px;
+
+  text-align: center;
+
+  color: #888888;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 14px;
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.members-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 28px;
+
+  padding: 0 10px;
+}
+
+.cancel-button {
+  width: 175px;
+  height: 63px;
+
+  border: 1px solid #d5d5d5;
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 17px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.save-members-button {
+  width: 360px;
+  height: 63px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #2f55b8;
+
+  color: #ffffff;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 18px;
+  font-weight: 400;
+
+  cursor: pointer;
+}

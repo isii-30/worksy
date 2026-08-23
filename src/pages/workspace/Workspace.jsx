@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ManageMembersModal from "../../components/members/ManageMembersModal";
 import WorkspaceCard from "../../components/workspace/WorkspaceCard";
 import CreateWorkspace from "../../components/workspace/CreateWorkspace";
 import EditWorkspace from "../../components/workspace/EditWorkspace";
@@ -14,6 +15,7 @@ export default function Workspace() {
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState(null);
+  const [managingMembersWorkspace, setManagingMembersWorkspace] = useState(null);
 
   const filteredWorkspaces = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -127,6 +129,7 @@ export default function Workspace() {
                 workspace={workspace}
                 onEdit={() => setEditingWorkspace(workspace)}
                 onOpen={(w) => navigate(`/boards?workspace=${w.id}`)}
+                onManageMembers={setManagingMembersWorkspace}
               />
             ))}
 
@@ -156,6 +159,10 @@ export default function Workspace() {
           onSave={handleSave}
           onDelete={handleDelete}
         />
+      )}
+
+      {managingMembersWorkspace && (
+        <ManageMembersModal onClose={() => setManagingMembersWorkspace(null)} />
       )}
     </div>
   );
