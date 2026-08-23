@@ -1,0 +1,564 @@
+/* =========================================
+   CALENDAR PAGE
+   ========================================= */
+
+.calendar-page {
+  display: flex;
+
+  width: 100%;
+
+  min-height: 100%;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   CALENDAR MAIN CONTENT
+   ========================================= */
+
+.calendar-main {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 28px 32px;
+
+  box-sizing: border-box;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   CALENDAR HEADER
+   ========================================= */
+
+.calendar-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  margin-bottom: 24px;
+}
+
+
+.calendar-header h1 {
+  margin: 0;
+
+  font-size: 34px;
+
+  font-weight: 700;
+
+  color: #20283f;
+}
+
+
+.calendar-header p {
+  margin: 4px 0 0;
+
+  font-size: 13px;
+
+  color: #666666;
+}
+
+
+/* =========================================
+   MONTH DROPDOWN
+   ========================================= */
+
+.month-dropdown {
+  position: relative;
+}
+
+
+.month-dropdown-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  border: none;
+
+  background: transparent;
+
+  padding: 6px 10px;
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  color: #111111;
+
+  cursor: pointer;
+}
+
+
+.month-dropdown-button:hover {
+  opacity: 0.75;
+}
+
+
+.month-chevron {
+  font-size: 15px;
+
+  transition: transform 0.2s ease;
+}
+
+
+.month-chevron.open {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================
+   MONTH DROPDOWN MENU
+   ========================================= */
+
+.month-dropdown-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+
+  right: 0;
+
+  z-index: 3000;
+
+  width: 180px;
+
+  max-height: 280px;
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border: 1px solid #dddddd;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.15);
+
+  padding: 6px;
+}
+
+
+.month-option {
+  width: 100%;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  border: none;
+
+  background: transparent;
+
+  padding: 9px 10px;
+
+  border-radius: 5px;
+
+  color: #222222;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+
+.month-option:hover {
+  background: #f2f4ff;
+}
+
+
+.month-option.selected {
+  background: #eef0ff;
+
+  color: #304bc2;
+
+  font-weight: 700;
+}
+
+
+.month-check {
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================
+   CALENDAR CONTAINER
+   ========================================= */
+
+.calendar-container {
+  width: 100%;
+
+  border: 1px solid #dddddd;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   WEEKDAY HEADER
+   ========================================= */
+
+.calendar-weekdays {
+  display: grid;
+
+  grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+
+  height: 62px;
+
+  border-bottom: 1px solid #dddddd;
+
+  background: #ffffff;
+}
+
+
+.calendar-weekdays > div {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  color: #111111;
+}
+
+
+/* =========================================
+   CALENDAR GRID
+   ========================================= */
+
+.calendar-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+
+  width: 100%;
+}
+
+
+/* =========================================
+   CALENDAR CELL
+   ========================================= */
+
+.calendar-cell {
+  position: relative;
+
+  min-width: 0;
+
+  min-height: 100px;
+
+  padding: 14px;
+
+  box-sizing: border-box;
+
+  border-right: 1px solid #dddddd;
+
+  border-bottom: 1px solid #dddddd;
+
+  background: #ffffff;
+
+  overflow: visible;
+}
+
+
+/* Remove right border from last column */
+
+.calendar-cell:nth-child(7n) {
+  border-right: none;
+}
+
+
+/* Remove bottom border from last row */
+
+.calendar-cell:nth-last-child(-n + 7) {
+  border-bottom: none;
+}
+
+
+/* =========================================
+   DATE NUMBER
+   ========================================= */
+
+.calendar-date {
+  font-size: 14px;
+
+  font-weight: 700;
+
+  color: #111111;
+}
+
+
+/* =========================================
+   PREVIOUS / NEXT MONTH DAYS
+   ========================================= */
+
+.calendar-cell.outside-month
+.calendar-date {
+  color: #c2c2c2;
+}
+
+
+/* =========================================
+   DEADLINE CELL
+   ========================================= */
+
+.calendar-cell.has-event {
+  cursor: pointer;
+}
+
+
+/* =========================================
+   DEADLINE INDICATOR
+   ========================================= */
+
+.calendar-cell.has-event::after {
+  content: "";
+
+  position: absolute;
+
+  left: 14px;
+
+  bottom: 12px;
+
+  width: 7px;
+
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+
+/* Red */
+
+.calendar-cell.has-event.red::after {
+  background: #ff3030;
+}
+
+
+/* Yellow */
+
+.calendar-cell.has-event.yellow::after {
+  background: #d49b00;
+}
+
+
+/* Green */
+
+.calendar-cell.has-event.green::after {
+  background: #218321;
+}
+
+
+/* =========================================
+   HOVER POPUP
+   ========================================= */
+
+.calendar-tooltip {
+  position: absolute;
+
+  left: 12px;
+
+  bottom: calc(100% - 5px);
+
+  z-index: 2000;
+
+  width: 190px;
+
+  padding: 12px 14px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #dddddd;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.15);
+
+  color: #222222;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  transform: translateY(5px);
+
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    visibility 0.15s ease;
+
+  pointer-events: none;
+}
+
+
+/* Show popup */
+
+.calendar-cell.has-event:hover
+.calendar-tooltip {
+  opacity: 1;
+
+  visibility: visible;
+
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   POPUP CONTENT
+   ========================================= */
+
+.tooltip-title {
+  margin-bottom: 3px;
+
+  color: #222222;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+.tooltip-workspace {
+  color: #666666;
+
+  font-size: 11px;
+
+  font-weight: 500;
+}
+
+
+.tooltip-divider {
+  height: 1px;
+
+  margin: 9px 0;
+
+  background: #eeeeee;
+}
+
+
+.tooltip-date {
+  color: #444444;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+
+.tooltip-status {
+  margin-top: 7px;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+
+.tooltip-status.red {
+  color: #ff3030;
+}
+
+
+.tooltip-status.yellow {
+  color: #d49b00;
+}
+
+
+.tooltip-status.green {
+  color: #218321;
+}
+
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 900px) {
+
+  .calendar-main {
+    padding: 20px;
+  }
+
+
+  .calendar-header {
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+
+  .month-dropdown {
+    align-self: flex-end;
+  }
+
+
+  .calendar-cell {
+    min-height: 85px;
+
+    padding: 10px;
+  }
+}
+
+
+@media (max-width: 650px) {
+
+  .calendar-main {
+    padding: 12px;
+  }
+
+
+  .calendar-header h1 {
+    font-size: 28px;
+  }
+
+
+  .calendar-weekdays > div {
+    font-size: 11px;
+  }
+
+
+  .calendar-cell {
+    min-height: 70px;
+
+    padding: 7px;
+  }
+
+
+  .calendar-date {
+    font-size: 12px;
+  }
+
+
+  .calendar-tooltip {
+    width: 170px;
+  }
+}
