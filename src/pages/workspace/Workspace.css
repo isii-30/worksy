@@ -1,0 +1,213 @@
+/* ============================================================
+   WORKSPACE PAGE — Main Panel & Page Layout
+   ============================================================ */
+
+/* Root page container */
+.workspace-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  background: #202940
+}
+
+/* ======================== MAIN PANEL ======================== */
+/* Main content panel */
+.workspace-main-panel {
+  flex: 1;
+  height: calc(100vh - 26px);
+  margin: 13px 13px 13px 13px;
+  box-sizing: border-box;
+  background: #f6f7fb;
+  border: 1px solid #69696d;
+  border-radius: 10px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Inner scrolling container */
+.workspace-main-scroll {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 27px 31px 36px 40px;
+}
+
+/* ======================== TOOLBAR ======================== */
+.workspace-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 23px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+/* Back button — 35 × 35 */
+.back-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 1.5px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  background-color: transparent;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #e2e8f0;
+}
+
+/* Search box — 836 × 48 */
+.search-box {
+  width: 836px;
+  max-width: calc(100% - 245px);
+  height: 48px;
+  background: #FFFFFF;
+  border: 1px solid rgba(105, 105, 109, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: #111827;
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: #69696d;
+}
+
+/* New Workspace button — 180 × 46 */
+.new-workspace-button {
+  width: 180px;
+  height: 46px;
+  background: #2449A7;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-left: 7px;
+  gap: 9px;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  box-sizing: border-box;
+  margin-left: auto;
+}
+
+.new-workspace-button:hover {
+  background: #1d3d8f;
+}
+
+.add-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.new-workspace-label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+/* ======================== TITLE ======================== */
+.workspace-title-row {
+  margin-bottom: 26px;
+}
+
+.workspace-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: normal;
+  color: #000000;
+  margin: 0;
+}
+
+/* ======================== CARDS GRID ======================== */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 229px);
+  column-gap: 48px;
+  row-gap: 37px;
+  align-items: start;
+}
+
+/* ======================== CREATE CARD ======================== */
+/* 229 × 245 */
+.create-workspace-box {
+  width: 229px;
+  height: 245px;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.create-workspace-box:hover {
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Plus box: 85 × 80 */
+.create-workspace-plus {
+  width: 85px;
+  height: 80px;
+  border-radius: 10px;
+  background: rgba(184, 192, 198, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 48px;
+  color: #232B30;
+  line-height: 1;
+}
+
+.create-workspace-label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #232B30;
+}
