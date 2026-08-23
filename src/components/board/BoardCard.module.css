@@ -1,0 +1,29 @@
+.card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: transform 0.15s ease;
+}
+.card:hover { transform: translateY(-2px); }
+.header { height: 40px; }
+.body { padding: 16px 20px; position: relative; }
+.topRow { display: flex; justify-content: space-between; align-items: flex-start; }
+.name { margin: 0; font-size: 18px; font-weight: 700; }
+.workspace { margin: 2px 0 0; color: #6b7280; font-size: 14px; }
+.actions {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.iconBtn, .iconBtnDanger, .iconBtnMembers {
+  border: none; border-radius: 50%; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.iconBtn { background: #1f2937; }
+.iconBtnDanger { background: #b91c1c; }
+.updated { margin-top: 16px; color: #6b7280; font-size: 13px; }

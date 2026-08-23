@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import WorkspaceCard from "../../components/workspace/WorkspaceCard";
 import CreateWorkspace from "../../components/workspace/CreateWorkspace";
 import EditWorkspace from "../../components/workspace/EditWorkspace";
@@ -8,6 +9,7 @@ import searchIconSvg from "../../assets/search-icon.svg";
 import "./Workspace.css";
 
 export default function Workspace() {
+  const navigate = useNavigate();
   const [workspaces, setWorkspaces] = useState(initialWorkspaces);
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -124,6 +126,7 @@ export default function Workspace() {
                 key={workspace.id}
                 workspace={workspace}
                 onEdit={() => setEditingWorkspace(workspace)}
+                onOpen={(w) => navigate(`/boards?workspace=${w.id}`)}
               />
             ))}
 
