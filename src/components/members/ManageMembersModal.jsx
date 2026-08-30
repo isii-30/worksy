@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ManageMembersModal.css";
 
 import MemberRow from "./MemberRow";
@@ -10,17 +10,34 @@ import membersImage from "../../assets/manage-members.png";
 import {
   getMembers,
   getWorkspaceBoards,
+  inviteMember,
 } from "../../services/memberService";
 
 
 function ManageMembersModal({ onClose }) {
+
   /* =========================================
-     MOCK DATA
+     BACKEND DATA
   ========================================= */
 
-  const [members, setMembers] = useState(getMembers());
+  const [members, setMembers] = useState([]);
+  const [workspaceBoards, setWorkspaceBoards] = useState([]);
 
-  const workspaceBoards = getWorkspaceBoards();
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const membersData = await getMembers();
+        const boardsData = await getWorkspaceBoards();
+
+        setMembers(membersData);
+        setWorkspaceBoards(boardsData);
+      } catch (error) {
+        console.error("Failed to load membership data:", error);
+      }
+    };
+
+    loadData();
+  }, []);
 
 
   /* =========================================
@@ -31,7 +48,6 @@ function ManageMembersModal({ onClose }) {
 
   const [memberToDelete, setMemberToDelete] = useState(null);
 
-  // Controls Invite Member popup
   const [showInviteModal, setShowInviteModal] = useState(false);
 
 
@@ -105,8 +121,7 @@ function ManageMembersModal({ onClose }) {
   const handleSaveChanges = () => {
     console.log("Updated members:", members);
 
-    // Later:
-    // memberService.updateMembers(members);
+    // Backend update API can be added later.
   };
 
 
@@ -114,13 +129,21 @@ function ManageMembersModal({ onClose }) {
      INVITE
   ========================================= */
 
-  const handleInvite = (email) => {
-    console.log("Invite sent to:", email);
+  const handleInvite = async (email) => {
+    try {
+      const result = await inviteMember(email);
 
-    // Later:
-    // memberService.inviteMember(email);
+      console.log("Invitation created:", result);
 
-    setShowInviteModal(false);
+      setShowInviteModal(false);
+
+      alert("Invitation sent successfully!");
+
+    } catch (error) {
+      console.error("Failed to send invitation:", error);
+
+      alert(error.message);
+    }
   };
 
 

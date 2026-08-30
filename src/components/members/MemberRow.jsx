@@ -4,7 +4,9 @@ import WorkspaceRoleSelector from "./WorkspaceRoleSelector";
 
 function MemberRow({
   member,
+  boards,
   onRoleChange,
+  onBoardChange,
   onDelete,
 }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -30,16 +32,26 @@ function MemberRow({
 
       <div className="member-role-area">
 
-        {/* Keep this visually as "Board" */}
+        {/* Board selector */}
         <select
           className="board-role-button"
-          defaultValue="Board"
+          value={member.board || ""}
+          onChange={(event) =>
+            onBoardChange(member.id, event.target.value)
+          }
         >
-          <option value="Board">Board</option>
-          <option value="Board 1">Board 1</option>
-          <option value="Board 2">Board 2</option>
+          <option value="" disabled>
+            Board
+          </option>
+
+          {boards.map((board) => (
+            <option key={board} value={board}>
+              {board}
+            </option>
+          ))}
         </select>
 
+        {/* Workspace role selector */}
         <WorkspaceRoleSelector
           role={member.role}
           onChange={(newRole) =>
@@ -47,6 +59,7 @@ function MemberRow({
           }
         />
 
+        {/* More menu */}
         <div className="member-menu-container">
 
           <button
@@ -58,6 +71,7 @@ function MemberRow({
 
           {showMenu && (
             <div className="member-dropdown-menu">
+
               <button
                 onClick={() => {
                   setShowMenu(false);
@@ -66,6 +80,7 @@ function MemberRow({
               >
                 Delete
               </button>
+
             </div>
           )}
 
