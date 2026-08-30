@@ -1,4 +1,4 @@
-export const initialWorkspaces = [
+const initialWorkspaces = [
   {
     id: 1,
     initials: "OM",
@@ -53,11 +53,18 @@ export const initialWorkspaces = [
   },
 ];
 
-export const memberAvatars = [
+const memberAvatars = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
 ];
 
-export const modalIllustration =
+const modalIllustration =
   "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&auto=format&fit=crop&q=80";
+
+// Main export used by workspace.service.js
+module.exports = initialWorkspaces;
+
+// Keep these available too if needed later
+module.exports.memberAvatars = memberAvatars;
+module.exports.modalIllustration = modalIllustration;
