@@ -4,7 +4,7 @@ const mockUsers = [
     firstName: "Senali",
     lastName: "Jayasundara",
     email: "senalijay05@gmail.com",
-    password: "123456",
+    password: "@152005sS",
     dob: "2005-09-04",
     contactNumber: "0771234567",
     jobTitle: "Vice Secretary",

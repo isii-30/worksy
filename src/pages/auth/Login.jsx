@@ -1,10 +1,9 @@
-// src/pages/auth/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
+import * as authService from '../../services/authService';
 import loginHero from '../../assets/worksy-login.png';
-import { getEmailFormatError, getEmailDomainSuggestion } from '../../utils/emailValidation';
 import './Login.css';
 
 function GoogleIcon() {
@@ -19,7 +18,11 @@ function GoogleIcon() {
 }
 
 const validators = {
-  email: (v) => getEmailFormatError(v),
+  email: (v) => {
+    if (!v.trim()) return 'Email address is required.';
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+    return valid ? '' : 'Enter a valid email address.';
+  },
   password: (v) => (!v ? 'Password is required.' : ''),
 };
 
@@ -29,7 +32,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const [emailSuggestion, setEmailSuggestion] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const handleChange = (field) => (e) => {
     const value = e.target.value;
@@ -37,35 +41,28 @@ export default function Login() {
     if (touched[field]) {
       setErrors((prev) => ({ ...prev, [field]: validators[field](value) }));
     }
-    if (field === 'email') {
-      const error = validators.email(value);
-      setEmailSuggestion(error ? null : getEmailDomainSuggestion(value));
-    }
   };
 
   const handleBlur = (field) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const error = validators[field](form[field]);
-    setErrors((prev) => ({ ...prev, [field]: error }));
-    if (field === 'email') {
-      setEmailSuggestion(error ? null : getEmailDomainSuggestion(form.email));
-    }
+    setErrors((prev) => ({ ...prev, [field]: validators[field](form[field]) }));
   };
 
-  const acceptEmailSuggestion = () => {
-    if (!emailSuggestion) return;
-    setForm((prev) => ({ ...prev, email: emailSuggestion }));
-    setEmailSuggestion(null);
+  const handleCreateAccount = () => {
+    navigate('/register');
   };
 
-  const handleCreateAccount = () => navigate('/register');
-  const handleForgotPassword = () => navigate('/forgot-password');
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
   const handleGoogleLogin = () => {
     // TODO: wire to OAuth flow via src/services once backend exists
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError('');
 
     const nextErrors = {
       email: validators.email(form.email),
@@ -76,8 +73,15 @@ export default function Login() {
 
     if (Object.values(nextErrors).some(Boolean)) return;
 
-    // TODO: call login service (src/services) once backend exists
-    navigate('/dashboard');
+    setIsSubmitting(true);
+    try {
+      await authService.login(form.email, form.password);
+      navigate('/dashboard');
+    } catch (err) {
+      setServerError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -97,7 +101,9 @@ export default function Login() {
       <p className="login__subtitle">Welcome back! Please enter your details.</p>
 
       <form className="login__form" onSubmit={handleSubmit} noValidate>
-        <Field label="Email Address" error={touched.email && errors.email}>
+        {serverError && <p className="login__server-error">{serverError}</p>}
+
+        <Field label="Email Address" icon={Mail} error={touched.email && errors.email}>
           <input
             type="email"
             value={form.email}
@@ -106,14 +112,14 @@ export default function Login() {
             placeholder="Enter your email address"
             autoComplete="email"
           />
-          {!errors.email && emailSuggestion && (
-            <button type="button" className="login__suggestion" onClick={acceptEmailSuggestion}>
-              Did you mean <strong>{emailSuggestion}</strong>?
-            </button>
-          )}
         </Field>
 
-        <Field label="Password" error={touched.password && errors.password} hideAutoError>
+        <Field
+          label="Password"
+          icon={Lock}
+          error={touched.password && errors.password}
+          hideAutoError
+        >
           <div className="login__password-wrap">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -125,11 +131,11 @@ export default function Login() {
             />
             <button
               type="button"
-              className={`login__eye${showPassword ? ' login__eye--active' : ''}`}
+              className="login__eye"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              {showPassword ? <Eye size={17} /> : <EyeOff size={17} />}
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
 
@@ -145,9 +151,9 @@ export default function Login() {
           </div>
         </Field>
 
-        <button type="submit" className="login__submit">
-          Log In
-          <ArrowRight size={18} />
+        <button type="submit" className="login__submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Logging in...' : 'Log In'}
+          {!isSubmitting && <ArrowRight size={18} />}
         </button>
 
         <div className="login__divider">
@@ -165,10 +171,12 @@ export default function Login() {
   );
 }
 
-function Field({ label, error, hideAutoError, children }) {
+function Field({ label, icon: Icon, error, hideAutoError, children }) {
   return (
     <label className={`login__field${error ? ' login__field--error' : ''}`}>
-      <span className="login__field-label">{label}</span>
+      <span className="login__field-label">
+        <Icon size={15} /> {label}
+      </span>
       {children}
       {!hideAutoError && error && <span className="login__field-error">{error}</span>}
     </label>
