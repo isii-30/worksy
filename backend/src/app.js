@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 
+const loadRoutes = require("./utils/routeLoader");
+
 const app = express();
 
 app.use(cors());
@@ -12,5 +14,8 @@ app.get("/api/health", (req, res) => {
     message: "SyncBoard API is running",
   });
 });
+
+// Automatically load module routes
+loadRoutes(app);
 
 module.exports = app;
