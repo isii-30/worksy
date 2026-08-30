@@ -1,98 +1,81 @@
-import { mockBoards, mockBoardMembers, mockWorkspaceMembers } from "../data/mock/boards";
+const API_BASE = "http://localhost:5000/api";
 
-// Simulates network latency so your loading states aren't lying to you
-const delay = (ms = 300) => new Promise((res) => setTimeout(res, ms));
+// Small helper so every call doesn't repeat the same fetch/json/error dance
+const request = async (path, options) => {
+  const response = await fetch(`${API_BASE}${path}`, options);
+  const result = await response.json();
 
-let boards = [...mockBoards];
-let boardMembers = { ...mockBoardMembers };
+  if (!response.ok) {
+    throw new Error(result.message || "Request failed");
+  }
+
+  return result.data;
+};
 
 export const boardService = {
   // FR-13: View boards for a workspace
   async getBoards(workspaceId) {
-    await delay();
-    if (!workspaceId || workspaceId === "all") return [...boards];
-    return boards.filter((b) => b.workspaceId === workspaceId);
+    return request(`/board/workspace/${workspaceId || "all"}`);
   },
 
   async getBoardById(boardId) {
-    await delay();
-    return boards.find((b) => b.id === boardId) || null;
+    return request(`/board/${boardId}`);
   },
 
   // FR-12: Create board — creator becomes Board Admin
   async createBoard({ name, description, workspaceId, workspaceName, currentUserId }) {
-    await delay();
-    const newBoard = {
-      id: "b" + Date.now(),
-      name,
-      description,
-      workspaceId,
-      workspaceName,
-      adminId: currentUserId,
-      updatedAt: new Date().toISOString(),
-    };
-    boards.push(newBoard);
-    boardMembers[newBoard.id] = [
-      { id: currentUserId, name: "You", email: "", avatar: null, role: "Admin" },
-    ];
-    return newBoard;
+    return request(`/board/workspace/${workspaceId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description, workspaceName, currentUserId }),
+    });
   },
 
   // FR-14: Edit board
   async updateBoard(boardId, { name, description }) {
-    await delay();
-    boards = boards.map((b) =>
-      b.id === boardId ? { ...b, name, description, updatedAt: new Date().toISOString() } : b
-    );
-    return boards.find((b) => b.id === boardId);
+    return request(`/board/${boardId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description }),
+    });
   },
 
   // FR-15: Delete board
   async deleteBoard(boardId) {
-    await delay();
-    boards = boards.filter((b) => b.id !== boardId);
-    delete boardMembers[boardId];
+    await request(`/board/${boardId}`, { method: "DELETE" });
     return true;
   },
 
   // FR-19: View board members
   async getBoardMembers(boardId) {
-    await delay();
-    return boardMembers[boardId] ? [...boardMembers[boardId]] : [];
+    return request(`/board/${boardId}/members`);
   },
 
   // Members available to add = workspace members not already on the board (FR-17)
   async getAddableMembers(boardId, workspaceId) {
-    await delay();
-    const current = boardMembers[boardId] || [];
-    const currentIds = current.map((m) => m.id);
-    const workspacePool = mockWorkspaceMembers[workspaceId] || [];
-    return workspacePool.filter((m) => !currentIds.includes(m.id));
+    return request(`/board/${boardId}/addable-members?workspaceId=${workspaceId}`);
   },
 
   // FR-17: Add board member
   async addBoardMember(boardId, member) {
-    await delay();
-    if (!boardMembers[boardId]) boardMembers[boardId] = [];
-    boardMembers[boardId].push({ ...member, role: "Member" });
-    return boardMembers[boardId];
+    return request(`/board/${boardId}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(member),
+    });
   },
 
   // FR-18: Remove board member
   async removeBoardMember(boardId, memberId) {
-    await delay();
-    boardMembers[boardId] = (boardMembers[boardId] || []).filter((m) => m.id !== memberId);
-    return boardMembers[boardId];
+    return request(`/board/${boardId}/members/${memberId}`, { method: "DELETE" });
   },
 
   // FR-16: Change Board Admin (old admin becomes normal member, board never left without one)
   async changeBoardAdmin(boardId, newAdminId) {
-    await delay();
-    boards = boards.map((b) => (b.id === boardId ? { ...b, adminId: newAdminId } : b));
-    boardMembers[boardId] = (boardMembers[boardId] || []).map((m) => ({
-      ...m,
-      role: m.id === newAdminId ? "Admin" : "Member",
-    }));
-    return boards.find((b) => b.id === boardId);
+    return request(`/board/${boardId}/admin`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newAdminId }),
+    });
   },
 };
