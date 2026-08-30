@@ -1,8 +1,12 @@
 import React, { useState } from "react";
-import { MoreVertical, Pencil, Trash2, Plus } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, Plus, GripVertical } from "lucide-react";
 
 import TaskCard from "./TaskCard";
 import "./KanbanColumn.css";
+
+// Custom MIME type used to tell a "reorder columns" drag apart from a
+// "move task between columns" drag on the same drop target.
+const COLUMN_DND_TYPE = "application/x-kanban-column";
 
 const KanbanColumn = ({
   column,
@@ -11,8 +15,11 @@ const KanbanColumn = ({
   onEditColumn,
   onDeleteColumn,
   onTaskDrop,
+  onDeleteTask,
+  onColumnDrop,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isBeingDragged, setIsBeingDragged] = useState(false);
 
   const handleDragOver = (e) => {
     e.preventDefault(); // required to allow dropping
@@ -30,25 +37,50 @@ const KanbanColumn = ({
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
+
+    // A whole column being dropped to reorder it
+    const draggedColumnId = e.dataTransfer.getData(COLUMN_DND_TYPE);
+    if (draggedColumnId) {
+      onColumnDrop?.(Number(draggedColumnId), column.id);
+      return;
+    }
+
+    // Otherwise, a task card being dropped into this column
     const taskId = e.dataTransfer.getData("text/plain");
     if (taskId) {
       onTaskDrop?.(Number(taskId), column.id);
     }
   };
 
+  const handleColumnDragStart = (e) => {
+    e.dataTransfer.setData(COLUMN_DND_TYPE, String(column.id));
+    e.dataTransfer.effectAllowed = "move";
+    setIsBeingDragged(true);
+  };
+
+  const handleColumnDragEnd = () => {
+    setIsBeingDragged(false);
+  };
+
   return (
     <div
       className={`kanban-column column-${column.color} ${
         isDragOver ? "drag-over" : ""
-      }`}
+      } ${isBeingDragged ? "column-dragging" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
 
-      <div className="column-header">
+      <div
+        className="column-header"
+        draggable
+        onDragStart={handleColumnDragStart}
+        onDragEnd={handleColumnDragEnd}
+      >
 
         <div className="column-title">
+          <GripVertical size={14} className="column-drag-handle" />
           <h2>{column.title}</h2>
           <span>{column.count}</span>
         </div>
@@ -72,6 +104,7 @@ const KanbanColumn = ({
           <TaskCard
             task={task}
             key={task.id}
+            onDeleteTask={onDeleteTask}
           />
         ))}
       </div>

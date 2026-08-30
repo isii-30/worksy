@@ -1,9 +1,28 @@
-import React from "react";
-import { CalendarDays, MoreVertical, Check } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { CalendarDays, MoreVertical, Check, Trash2 } from "lucide-react";
 
 import "./TaskCard.css";
 
-const TaskCard = ({ task, onDragStart, onDragEnd }) => {
+const TaskCard = ({ task, onDragStart, onDragEnd, onDeleteTask }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
+  const handleDelete = () => {
+    setIsMenuOpen(false);
+    onDeleteTask?.(task);
+  };
+
   return (
     <div
       className="task-card"
@@ -24,7 +43,26 @@ const TaskCard = ({ task, onDragStart, onDragEnd }) => {
             <Check size={15} strokeWidth={3} />
           </div>
         ) : (
-          <MoreVertical size={16} className="task-menu-icon" />
+          <div className="task-menu-wrapper" ref={menuRef}>
+            <MoreVertical
+              size={16}
+              className="task-menu-icon"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+            />
+
+            {isMenuOpen && (
+              <ul className="task-menu-dropdown" role="menu">
+                <li
+                  className="task-menu-dropdown-item"
+                  role="menuitem"
+                  onClick={handleDelete}
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </li>
+              </ul>
+            )}
+          </div>
         )}
       </div>
 

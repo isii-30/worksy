@@ -54,3 +54,12 @@
 .confirm-btn-danger:hover {
   background: #d33;
 }
+
+.confirm-btn-danger:disabled {
+  background: #f3a6a8;
+  cursor: not-allowed;
+}
+
+.confirm-btn-danger:disabled:hover {
+  background: #f3a6a8;
+}

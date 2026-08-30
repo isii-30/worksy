@@ -1,13 +1,21 @@
+/* =========================
+   GLOBAL
+========================= */
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  /* font-family: 'Inter', Helvetica, sans-serif; */
   background: #ffffff;
   font-family: 'Inter', sans-serif;
 }
+
+
+/* =========================
+   KANBAN PAGE
+========================= */
 
 .kanban-page {
   width: 100%;
@@ -31,66 +39,103 @@ body {
 
 .board-header {
   height: 84px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   padding: 0 28px 0 32px;
+
   border-bottom: 1px solid #e0e0e0;
 }
 
 .board-header h1 {
   margin: 0;
+
   color: #27334a;
-  font-size: 30px;
+
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: -0.8px;
+
+  letter-spacing: -0.5px;
 }
+
+
+/* =========================
+   HEADER ACTIONS
+========================= */
 
 .board-header-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
+
+
+/* =========================
+   SEARCH BOX
+========================= */
 
 .search-box {
   width: 220px;
-  height: 38px;
+  height: 40px;
+
   border: 1px solid #b9bdc3;
   border-radius: 6px;
+
   display: flex;
   align-items: center;
+
   gap: 9px;
-  padding: 0 12px;
+
+  padding: 0 13px;
+
   color: #50545a;
 }
 
 .search-box input {
   width: 100%;
   min-width: 0;
+
   border: none;
   outline: none;
-  font-size: 13px;
-  color: #222222;
+
   background: transparent;
+
+  color: #222222;
+
+  font-size: 12px;
 }
 
 .search-box input::placeholder {
   color: #555555;
 }
 
+
+/* =========================
+   HEADER BUTTON
+========================= */
+
 .header-button {
-  height: 40px;
+  height: 42px;
+
   border: none;
   border-radius: 8px;
+
   background: #2854b5;
   color: #ffffff;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   gap: 8px;
-  padding: 0 18px;
+
+  padding: 0 20px;
+
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
 }
 
@@ -98,21 +143,31 @@ body {
   background: #21479b;
 }
 
+
+/* =========================
+   HEADER MORE BUTTON
+========================= */
+
 .header-more-wrapper {
   position: relative;
-  margin-left: 6px;
+  margin-left: 4px;
 }
 
 .header-more-btn {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
+
   border: none;
   background: transparent;
+
   border-radius: 6px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: #1e1e1e;
+
   cursor: pointer;
 }
 
@@ -120,31 +175,51 @@ body {
   background: #f0f2f5;
 }
 
+
+/* =========================
+   HEADER MORE MENU
+========================= */
+
 .header-more-menu {
   position: absolute;
+
   top: calc(100% + 8px);
   right: 0;
+
   min-width: 170px;
+
   background: #ffffff;
+
   border: 1px solid #e4e6ee;
   border-radius: 10px;
+
   box-shadow: 0 12px 28px rgba(17, 24, 51, 0.16);
+
   list-style: none;
+
   margin: 0;
   padding: 6px;
+
   z-index: 20;
 }
 
 .header-more-menu-item {
   display: flex;
   align-items: center;
+
   gap: 10px;
+
   padding: 10px 12px;
+
   font-size: 14px;
   font-weight: 500;
+
   color: #27334a;
+
   border-radius: 7px;
+
   cursor: pointer;
+
   transition: background 0.12s ease;
 }
 
@@ -154,60 +229,94 @@ body {
 
 
 /* =========================
-   SUMMARY
+   BOARD SUMMARY
 ========================= */
 
 .board-summary {
-  height: 96px;
+  min-height: 100px;
+
   border-bottom: 1px solid #dfe3e6;
+
   display: flex;
   align-items: center;
-  gap: 60px;
-  padding: 0 20px 0 32px;
+
+  gap: 40px;
+
+  padding: 18px 28px 18px 32px;
 }
+
+
+/* =========================
+   BOARD NAME
+========================= */
 
 .board-name {
   width: 160px;
+
   display: flex;
   align-items: center;
-  gap: 16px;
+
+  gap: 14px;
+
+  flex-shrink: 0;
 }
 
 .board-document-icon {
   color: #2854b5;
+
   display: flex;
   align-items: center;
+
+  flex-shrink: 0;
 }
 
 .board-name h2 {
   margin: 0;
+
   color: #2854b5;
-  font-size: 18px;
-  line-height: 22px;
+
+  font-size: 15px;
+  line-height: 18px;
+
   font-weight: 700;
 }
 
+
+/* =========================
+   SUMMARY STAT CARDS
+========================= */
+
 .stat-card {
-  width: 108px;
-  height: 68px;
+  width: 110px;
+  min-height: 66px;
+
   border: 1px solid #d3d7dc;
   border-radius: 6px;
+
   display: flex;
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
+
+  padding: 12px 8px;
+
+  flex-shrink: 0;
 }
 
 .stat-card span {
   color: #4e5155;
+
   font-size: 11px;
+
   margin-bottom: 5px;
 }
 
 .stat-card strong {
   color: #111111;
-  font-size: 22px;
-  line-height: 22px;
+
+  font-size: 21px;
+  line-height: 21px;
 }
 
 .stat-card.overdue strong {
@@ -221,15 +330,44 @@ body {
 
 .kanban-board {
   display: flex;
+
   gap: 20px;
+
   padding: 20px 24px;
-  height: calc(100vh - 180px);
+
+  height: calc(100vh - 184px);
+
   overflow-x: auto;
+
+  background: #ffffff;
 }
 
 .kanban-board > * {
   flex: 1;
-  min-width: 280px;
+
+  min-width: 250px;
+}
+
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+.kanban-board::-webkit-scrollbar {
+  height: 7px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+  background: #c7cbd1;
+  border-radius: 10px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+  background: #aeb3ba;
 }
 
 
@@ -238,20 +376,35 @@ body {
 ========================= */
 
 @media (max-width: 900px) {
+
   .board-summary {
-    gap: 20px;
+    gap: 14px;
   }
 
   .board-name {
-    width: 130px;
+    width: 120px;
   }
 
   .stat-card {
-    width: 90px;
+    width: 82px;
+  }
+
+  .kanban-board {
+    gap: 10px;
+  }
+
+  .kanban-board > * {
+    min-width: 230px;
   }
 }
 
+
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 700px) {
+
   .sidebar {
     width: 60px;
     min-width: 60px;
@@ -266,32 +419,61 @@ body {
     justify-content: center;
   }
 
+
+  /* Header */
+
+  .board-header {
+    padding: 0 14px;
+  }
+
   .board-header h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .board-header-actions {
-    gap: 8px;
+    gap: 6px;
   }
+
+
+  /* Search */
+
+  .search-box {
+    width: 150px;
+  }
+
+
+  /* Header buttons */
 
   .header-button span {
     display: none;
   }
 
   .header-button {
-    width: 40px;
+    width: 34px;
     padding: 0;
   }
 
+
+  /* Summary */
+
   .board-summary {
     overflow-x: auto;
+
+    gap: 14px;
+
+    padding-left: 14px;
   }
+
+
+  /* Board */
 
   .kanban-board {
     overflow-x: auto;
+
+    padding: 10px 8px;
   }
 
-  .kanban-column {
-    min-width: 240px;
+  .kanban-board > * {
+    min-width: 220px;
   }
 }
