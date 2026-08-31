@@ -7,6 +7,7 @@ const ConfirmDialog = ({
   message,
   confirmLabel = "Delete",
   cancelLabel = "Cancel",
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }) => {
@@ -22,7 +23,11 @@ const ConfirmDialog = ({
           <button className="confirm-btn-cancel" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button className="confirm-btn-danger" onClick={onConfirm}>
+          <button
+            className="confirm-btn-danger"
+            onClick={onConfirm}
+            disabled={confirmDisabled}
+          >
             {confirmLabel}
           </button>
         </div>

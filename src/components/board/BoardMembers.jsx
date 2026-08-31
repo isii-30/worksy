@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { boardService } from "../../services/boardService";
+import { boardService } from "../../services/kboardService";
 import styles from "./BoardMembers.module.css";
 import membersIcon from "../../assets/members-icon.jpg";
 
