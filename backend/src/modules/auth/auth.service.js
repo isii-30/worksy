@@ -49,4 +49,23 @@ function register({ firstName, lastName, email, password }) {
   return { data: safeUser };
 }
 
-module.exports = { login, logout, getCurrentUser, register };
+function changePassword(currentPassword, newPassword) {
+  const user = mockUsers.find((u) => u.id === currentUserId);
+  if (!user) return { error: "Not logged in.", status: 401 };
+  if (user.password !== currentPassword) {
+    return { error: "Current password is incorrect.", status: 401 };
+  }
+  user.password = newPassword;
+  return { success: true };
+}
+
+function resetPassword(email, newPassword) {
+  const user = mockUsers.find((u) => u.email === email);
+  if (!user) {
+    return { error: "No account found with that email address.", status: 404 };
+  }
+  user.password = newPassword;
+  return { success: true };
+}
+
+module.exports = { login, logout, getCurrentUser, register, changePassword, resetPassword };

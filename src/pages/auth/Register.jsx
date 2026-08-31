@@ -7,6 +7,7 @@ import registerHero from '../../assets/worksy-create-acc.png';
 import { getEmailFormatError, getEmailDomainSuggestion } from '../../utils/emailValidation';
 import * as authService from '../../services/authService';
 import './Register.css';
+import { useProfile } from '../../context/ProfileContext';
 
 const NAME_REGEX = /^[A-Za-z\s'-]+$/;
 
@@ -48,6 +49,7 @@ const inputFilters = {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -118,6 +120,7 @@ export default function Register() {
     setIsSubmitting(true);
     try {
       await authService.register(form.firstName, form.lastName, form.email, form.password);
+      await refreshProfile();
       navigate('/dashboard');
     } catch (err) {
       setServerError(err.message);

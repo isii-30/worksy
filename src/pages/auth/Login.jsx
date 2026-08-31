@@ -1,8 +1,10 @@
+// src/pages/auth/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import * as authService from '../../services/authService';
+import { useProfile } from '../../context/ProfileContext';
 import loginHero from '../../assets/worksy-login.png';
 import './Login.css';
 
@@ -28,12 +30,13 @@ const validators = {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverError, setServerError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (field) => (e) => {
     const value = e.target.value;
@@ -62,7 +65,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setServerError('');
 
     const nextErrors = {
       email: validators.email(form.email),
@@ -73,12 +75,14 @@ export default function Login() {
 
     if (Object.values(nextErrors).some(Boolean)) return;
 
+    setSubmitError('');
     setIsSubmitting(true);
     try {
       await authService.login(form.email, form.password);
+      await refreshProfile();
       navigate('/dashboard');
     } catch (err) {
-      setServerError(err.message);
+      setSubmitError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -101,7 +105,7 @@ export default function Login() {
       <p className="login__subtitle">Welcome back! Please enter your details.</p>
 
       <form className="login__form" onSubmit={handleSubmit} noValidate>
-        {serverError && <p className="login__server-error">{serverError}</p>}
+        {submitError && <p className="login__submit-error">{submitError}</p>}
 
         <Field label="Email Address" icon={Mail} error={touched.email && errors.email}>
           <input
@@ -131,11 +135,11 @@ export default function Login() {
             />
             <button
               type="button"
-              className="login__eye"
+              className={`login__eye${showPassword ? ' login__eye--active' : ''}`}
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              {showPassword ? <Eye size={17} /> : <EyeOff size={17} />}
             </button>
           </div>
 
@@ -152,7 +156,7 @@ export default function Login() {
         </Field>
 
         <button type="submit" className="login__submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging in...' : 'Log In'}
+          {isSubmitting ? 'Logging in…' : 'Log In'}
           {!isSubmitting && <ArrowRight size={18} />}
         </button>
 

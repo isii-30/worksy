@@ -6,7 +6,7 @@ import AuthLayout from '../../components/auth/AuthLayout';
 import resetHero from '../../assets/worksy-reset-password.png';
 import { getEmailFormatError, getEmailDomainSuggestion } from '../../utils/emailValidation';
 import './ForgotPassword.css';
-
+import { resetPassword } from '../../services/authService';
 const validators = {
   email: (v) => getEmailFormatError(v),
   newPassword: (v) => {
@@ -32,6 +32,8 @@ export default function ForgotPassword() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [emailSuggestion, setEmailSuggestion] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const validateField = (field, value, currentForm) => validators[field](value, currentForm);
 
@@ -72,22 +74,30 @@ export default function ForgotPassword() {
 
   const handleBack = () => navigate('/login');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const nextErrors = {
-      email: validateField('email', form.email, form),
-      newPassword: validateField('newPassword', form.newPassword, form),
-      confirmPassword: validateField('confirmPassword', form.confirmPassword, form),
-    };
-    setErrors(nextErrors);
-    setTouched({ email: true, newPassword: true, confirmPassword: true });
-
-    if (Object.values(nextErrors).some(Boolean)) return;
-
-    // TODO: call password reset service (src/services) once backend exists
-    navigate('/login');
+  const nextErrors = {
+    email: validateField('email', form.email, form),
+    newPassword: validateField('newPassword', form.newPassword, form),
+    confirmPassword: validateField('confirmPassword', form.confirmPassword, form),
   };
+  setErrors(nextErrors);
+  setTouched({ email: true, newPassword: true, confirmPassword: true });
+
+  if (Object.values(nextErrors).some(Boolean)) return;
+
+  setSubmitError('');
+  setIsSubmitting(true);
+  try {
+    await resetPassword(form.email, form.newPassword);
+    navigate('/login');
+  } catch (err) {
+    setSubmitError(err.message);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <AuthLayout
@@ -160,9 +170,10 @@ export default function ForgotPassword() {
           </div>
         </Field>
 
-        <button type="submit" className="forgot-password__submit">
-          Continue
-          <ArrowRight size={18} />
+        {submitError && <p className="forgot-password__submit-error">{submitError}</p>}
+        <button type="submit" className="forgot-password__submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Resetting…' : 'Continue'}
+          {!isSubmitting && <ArrowRight size={18} />}
         </button>
       </form>
     </AuthLayout>

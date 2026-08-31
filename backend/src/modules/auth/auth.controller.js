@@ -75,4 +75,62 @@ function postRegister(req, res) {
   res.status(201).json({ success: true, data: result.data });
 }
 
-module.exports = { postLogin, postLogout, getMe, postRegister };
+function postChangePassword(req, res) {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: "Both current and new password are required." });
+  }
+
+  const strengthOk =
+    newPassword.length >= 8 &&
+    /[a-z]/.test(newPassword) &&
+    /[A-Z]/.test(newPassword) &&
+    /\d/.test(newPassword) &&
+    /[^A-Za-z0-9]/.test(newPassword);
+
+  if (!strengthOk) {
+    return res.status(400).json({
+      success: false,
+      message: "New password must be 8+ characters with upper, lower, number, and special character.",
+    });
+  }
+
+  const result = authService.changePassword(currentPassword, newPassword);
+  if (result.error) {
+    return res.status(result.status || 400).json({ success: false, message: result.error });
+  }
+
+  res.status(200).json({ success: true, data: { message: "Password updated." } });
+}
+
+function postResetPassword(req, res) {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ success: false, message: "Email and new password are required." });
+  }
+
+  const strengthOk =
+    newPassword.length >= 8 &&
+    /[a-z]/.test(newPassword) &&
+    /[A-Z]/.test(newPassword) &&
+    /\d/.test(newPassword) &&
+    /[^A-Za-z0-9]/.test(newPassword);
+
+  if (!strengthOk) {
+    return res.status(400).json({
+      success: false,
+      message: "New password must be 8+ characters with upper, lower, number, and special character.",
+    });
+  }
+
+  const result = authService.resetPassword(email, newPassword);
+  if (result.error) {
+    return res.status(result.status || 400).json({ success: false, message: result.error });
+  }
+
+  res.status(200).json({ success: true, data: { message: "Password reset successfully." } });
+}
+
+module.exports = { postLogin, postLogout, getMe, postRegister, postChangePassword, postResetPassword };
