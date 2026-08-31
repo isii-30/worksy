@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { boardService } from "../../services/boardService";
+import { boardService } from "../../services/kboardService";
 import styles from "./BoardMembers.module.css";
 
 export default function AddBoardMemberModal({ isOpen, onClose, board, onAdded }) {

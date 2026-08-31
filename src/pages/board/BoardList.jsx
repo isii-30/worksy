@@ -7,7 +7,7 @@ import RemoveBoardMemberModal from "../../components/board/RemoveBoardMemberModa
 import CreateBoardModal from "../../components/board/CreateBoardModal";
 import EditBoardModal from "../../components/board/EditBoardModal";
 import DeleteBoardModal from "../../components/board/DeleteBoardModal";
-import { boardService } from "../../services/boardService";
+import { boardService } from "../../services/kboardService";
 import styles from "./BoardList.module.css";
 
 const CURRENT_USER_ID = "u1"; // TODO: replace with real auth user once P1's auth context exists

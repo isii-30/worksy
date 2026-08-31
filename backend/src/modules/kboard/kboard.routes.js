@@ -1,5 +1,5 @@
 const express = require("express");
-const boardController = require("./board.controller");
+const boardController = require("./kboard.controller");
 
 const router = express.Router();
 

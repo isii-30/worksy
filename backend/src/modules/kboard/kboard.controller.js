@@ -1,4 +1,4 @@
-const boardService = require("./board.service");
+const boardService = require("./kboard.service");
 
 
 // GET /api/board/workspace/:workspaceId

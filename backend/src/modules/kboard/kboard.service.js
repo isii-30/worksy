@@ -1,4 +1,4 @@
-const { boards, boardMembers, workspaceMembers } = require("../../data/mock/boards");
+const { boards, boardMembers, workspaceMembers } = require("../../data/mock/kboards");
 
 // FR-13: View boards for a workspace ("all" returns every board)
 const getBoardsByWorkspace = (workspaceId) => {
