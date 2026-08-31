@@ -48,6 +48,18 @@ const mockRegisteredUsers = [
     email: "kasun@example.com",
     image: null,
   },
+  {
+    id: "u7",
+    name: "Nimali Fernando",
+    email: "nimali@example.com",
+    image: null,
+  },
+  {
+    id: "u8",
+    name: "Tharindu Silva",
+    email: "tharindu@example.com",
+    image: null,
+  },
 ];
 
 module.exports = {
