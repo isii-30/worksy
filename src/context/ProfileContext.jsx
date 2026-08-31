@@ -1,51 +1,60 @@
-import { createContext, useContext, useState } from 'react';
-import { mockCurrentUser } from '../data/mock/users';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import * as profileService from '../services/profileService';
 
 const ProfileContext = createContext(null);
 
-const PROFILE_IMAGE_STORAGE_KEY = 'worksy:profileImage';
-
-function getStoredProfileImage() {
-  try {
-    return localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY) || null;
-  } catch {
-    // localStorage can throw in private/incognito mode in some browsers —
-    // fail quietly and just start with no photo rather than crashing.
-    return null;
-  }
-}
+const emptyProfile = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  dob: '',
+  contactNumber: '',
+  jobTitle: '',
+  bio: '',
+  profileImage: null,
+};
 
 export function ProfileProvider({ children }) {
-  // Text fields: seeded from mock data, reset every refresh (no persistence).
-  // profileImage: the one field that IS persisted, via localStorage.
-  const [profile, setProfile] = useState(() => ({
-    ...mockCurrentUser,
-    profileImage: getStoredProfileImage(),
-  }));
+  const [profile, setProfile] = useState(emptyProfile);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const updateProfile = (updates) => {
-    setProfile((prev) => {
-      const next = { ...prev, ...updates };
+  const fetchProfile = useCallback(() => {
+    setIsLoading(true);
+    setLoadError('');
+    return profileService
+      .getProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => setLoadError(err.message))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-      if ('profileImage' in updates) {
-        try {
-          if (updates.profileImage) {
-            localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, updates.profileImage);
-          } else {
-            localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
-          }
-        } catch {
-          // Storage full or unavailable then profile still updates in memory,
-          // it just won't survive a refresh this time.
-        }
-      }
+  // Runs once when the app first loads (e.g. someone already logged in
+  // refreshing the page). Login/Register explicitly call refreshProfile()
+  // themselves afterward, since SPA navigation doesn't remount this
+  // provider and re-trigger this effect.
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
-      return next;
-    });
+  const refreshProfile = fetchProfile;
+
+  const updateProfile = async (updates) => {
+    const updated = await profileService.updateProfile(updates);
+    setProfile(updated);
+    return updated;
+  };
+
+  const resetProfile = () => {
+    setProfile(emptyProfile);
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile }}>
+    <ProfileContext.Provider
+      value={{ profile, updateProfile, isLoading, loadError, refreshProfile, resetProfile }}
+    >
       {children}
     </ProfileContext.Provider>
   );

@@ -10,6 +10,7 @@ export default function ProfilePictureModal({ currentImage, onClose, onSave, onR
   const [pendingFile, setPendingFile] = useState(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
 
   const validateAndSetFile = useCallback((file) => {
@@ -27,8 +28,6 @@ export default function ProfilePictureModal({ currentImage, onClose, onSave, onR
     setError('');
     setPendingFile(file);
 
-    // Base64 data URL instead of a blob URL — blob URLs die on page refresh,
-    // data URLs are just strings and survive being saved to localStorage.
     const reader = new FileReader();
     reader.onload = () => setPreviewUrl(reader.result);
     reader.readAsDataURL(file);
@@ -60,13 +59,21 @@ export default function ProfilePictureModal({ currentImage, onClose, onSave, onR
     setError('');
   };
 
-  const handleSave = () => {
-    if (pendingFile) {
-      onSave(pendingFile, previewUrl);
-    } else if (previewUrl === null && currentImage) {
-      onRemove();
+  const handleSave = async () => {
+    setError('');
+    setIsSaving(true);
+    try {
+      if (pendingFile) {
+        await onSave(pendingFile, previewUrl);
+      } else if (previewUrl === null && currentImage) {
+        await onRemove();
+      }
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Failed to save photo. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    onClose();
   };
 
   const hasChange = pendingFile !== null || (previewUrl === null && currentImage);
@@ -128,8 +135,8 @@ export default function ProfilePictureModal({ currentImage, onClose, onSave, onR
           <button type="button" className="btn btn--ghost" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn btn--primary" onClick={handleSave} disabled={!hasChange}>
-            Save
+          <button type="button" className="btn btn--primary" onClick={handleSave} disabled={!hasChange || isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
