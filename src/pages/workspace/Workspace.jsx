@@ -1,21 +1,39 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ManageMembersModal from "../../components/members/ManageMembersModal";
 import WorkspaceCard from "../../components/workspace/WorkspaceCard";
 import CreateWorkspace from "../../components/workspace/CreateWorkspace";
 import EditWorkspace from "../../components/workspace/EditWorkspace";
-import { initialWorkspaces } from "../../data/mock/workspaces";
 import addIcon from "../../assets/add-icon.svg";
 import searchIconSvg from "../../assets/search-icon.svg";
 import "./Workspace.css";
 
+const API_URL = "http://localhost:5000/api/workspace";
+
 export default function Workspace() {
   const navigate = useNavigate();
-  const [workspaces, setWorkspaces] = useState(initialWorkspaces);
+  const [workspaces, setWorkspaces] = useState([]);
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState(null);
   const [managingMembersWorkspace, setManagingMembersWorkspace] = useState(null);
+  
+  useEffect(() => {
+  const fetchWorkspaces = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const result = await response.json();
+
+      if (result.success) {
+        setWorkspaces(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch workspaces:", error);
+    }
+  };
+
+  fetchWorkspaces();
+}, []);
 
   const filteredWorkspaces = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -27,64 +45,91 @@ export default function Workspace() {
     );
   }, [search, workspaces]);
 
-  const handleCreate = ({ name, description }) => {
-    const cleanName = name.trim() || "New Workspace";
+  const handleCreate = async ({ name, description }) => {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        description,
+      }),
+    });
 
-    const initials = cleanName
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word[0]?.toUpperCase())
-      .join("");
+    const result = await response.json();
 
-    const nextId =
-      workspaces.length > 0
-        ? Math.max(...workspaces.map((workspace) => workspace.id)) + 1
-        : 1;
+    if (result.success) {
+      setWorkspaces((current) => [...current, result.data]);
+      setShowCreate(false);
+    }
+  } catch (error) {
+    console.error("Failed to create workspace:", error);
+  }
+};
 
-    const newWorkspace = {
-      id: nextId,
-      initials: initials || "NW",
-      name: cleanName,
-      members: 1,
-      visibility: "Public",
-      role: "Owner",
-      locked: false,
-      description: description.trim() || "A new workspace for your team.",
-      color: "rgba(184,192,198,0.8)",
-      textColor: "#24313A",
-    };
+ const handleSave = async ({ name, description }) => {
+  if (!editingWorkspace) return;
 
-    setWorkspaces((current) => [...current, newWorkspace]);
-    setShowCreate(false);
-  };
-
-  const handleSave = ({ name, description }) => {
-    if (!editingWorkspace) return;
-
-    setWorkspaces((current) =>
-      current.map((workspace) =>
-        workspace.id === editingWorkspace.id
-          ? {
-              ...workspace,
-              name: name.trim() || workspace.name,
-              description: description.trim() || workspace.description,
-            }
-          : workspace
-      )
+  try {
+    const response = await fetch(
+      `${API_URL}/${editingWorkspace.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          description,
+        }),
+      }
     );
 
-    setEditingWorkspace(null);
-  };
+    const result = await response.json();
 
-  const handleDelete = () => {
-    if (!editingWorkspace) return;
+    if (result.success) {
+      setWorkspaces((current) =>
+        current.map((workspace) =>
+          workspace.id === editingWorkspace.id
+            ? result.data
+            : workspace
+        )
+      );
 
-    setWorkspaces((current) =>
-      current.filter((workspace) => workspace.id !== editingWorkspace.id)
+      setEditingWorkspace(null);
+    }
+  } catch (error) {
+    console.error("Failed to update workspace:", error);
+  }
+};
+const handleDelete = async () => {
+  if (!editingWorkspace) return;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/${editingWorkspace.id}`,
+      {
+        method: "DELETE",
+      }
     );
 
-    setEditingWorkspace(null);
-  };
+    const result = await response.json();
+
+    if (result.success) {
+      setWorkspaces((current) =>
+        current.filter(
+          (workspace) => workspace.id !== editingWorkspace.id
+        )
+      );
+
+      setEditingWorkspace(null);
+    }
+  } catch (error) {
+    console.error("Failed to delete workspace:", error);
+  }
+};
 
   return (
     <div className="workspace-page">

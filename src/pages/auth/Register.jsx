@@ -5,7 +5,9 @@ import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import registerHero from '../../assets/worksy-create-acc.png';
 import { getEmailFormatError, getEmailDomainSuggestion } from '../../utils/emailValidation';
+import * as authService from '../../services/authService';
 import './Register.css';
+import { useProfile } from '../../context/ProfileContext';
 
 const NAME_REGEX = /^[A-Za-z\s'-]+$/;
 
@@ -47,6 +49,7 @@ const inputFilters = {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { refreshProfile } = useProfile();
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -59,6 +62,8 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [emailSuggestion, setEmailSuggestion] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const validateField = (field, value, currentForm) => validators[field](value, currentForm);
 
@@ -99,8 +104,9 @@ export default function Register() {
 
   const handleBack = () => navigate('/');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError('');
 
     const nextErrors = {};
     Object.keys(form).forEach((field) => {
@@ -111,8 +117,16 @@ export default function Register() {
 
     if (Object.values(nextErrors).some(Boolean)) return;
 
-    // TODO: call registration service (src/services) once backend exists
-    navigate('/login');
+    setIsSubmitting(true);
+    try {
+      await authService.register(form.firstName, form.lastName, form.email, form.password);
+      await refreshProfile();
+      navigate('/dashboard');
+    } catch (err) {
+      setServerError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -129,6 +143,8 @@ export default function Register() {
       <p className="register__subtitle">Let's get started with your Worksy account</p>
 
       <form className="register__form" onSubmit={handleSubmit} noValidate>
+        {serverError && <p className="register__server-error">{serverError}</p>}
+
         <div className="register__row">
           <Field label="First Name" error={touched.firstName && errors.firstName}>
             <input
@@ -209,9 +225,9 @@ export default function Register() {
           </div>
         </Field>
 
-        <button type="submit" className="register__submit">
-          Continue
-          <ArrowRight size={18} />
+        <button type="submit" className="register__submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating account...' : 'Continue'}
+          {!isSubmitting && <ArrowRight size={18} />}
         </button>
       </form>
     </AuthLayout>

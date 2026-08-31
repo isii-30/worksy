@@ -98,6 +98,7 @@
 
 .login__eye:active {
   transform: translateY(-50%) scale(0.9);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .login__eye--active {
@@ -231,4 +232,21 @@
 
 .login__suggestion:hover {
   text-decoration: underline;
+}
+
+.login__server-error {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login__submit-error {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--color-danger);
+  text-align: center;
 }

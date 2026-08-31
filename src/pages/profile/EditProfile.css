@@ -187,13 +187,18 @@
   border-color: var(--color-border);
   color: var(--color-text-primary);
 }
-
 .btn--primary {
-  background: var(--color-bg-sidebar);
+  background: var(--color-accent);
   color: #fff;
+  font-weight: 700;
 }
 
-.btn--primary:hover { background: #182338; }
+.btn--primary:hover { background: var(--color-accent-hover); }
+
+.btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -250,4 +255,77 @@
 
 .field__suggestion:hover {
   text-decoration: underline;
+}
+
+.edit-profile__save-error {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-profile__load-error {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-danger);
+}
+
+.edit-profile__password-card {
+  max-width: 460px;
+  margin: 24px auto 0;
+}
+
+.edit-profile__password-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.edit-profile__password-subtitle {
+  margin: 0 0 20px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.edit-profile__password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.edit-profile__password-wrap {
+  position: relative;
+}
+
+.edit-profile__password-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.edit-profile__password-success {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-profile__save-success {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 600;
 }

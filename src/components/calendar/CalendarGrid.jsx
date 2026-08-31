@@ -1,4 +1,6 @@
-import { mockCalendarEvents as events } from "../../data/mock/calendarEvents";
+import { useEffect, useState } from "react";
+import { getCalendarEvents } from "../../services/calendarService";
+
 const weekdays = [
   "Mon",
   "Tue",
@@ -9,34 +11,57 @@ const weekdays = [
   "Sun",
 ];
 
-
-/*
-  Temporary calendar data.
-
-  urgency:
-  red    = latest / urgent
-  yellow = medium
-  green  = later
-*/
-
-
 function CalendarGrid({ currentDate }) {
+  // Events received from the backend
+  const [events, setEvents] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // =========================================
+  // LOAD EVENTS FROM BACKEND
+  // =========================================
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getCalendarEvents();
+
+        // Convert backend array into an object
+        // indexed by date.
+        const eventsByDate = {};
+
+        data.forEach((event) => {
+          eventsByDate[event.date] = event;
+        });
+
+        setEvents(eventsByDate);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to load calendar events:", err);
+        setError("Failed to load calendar events");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
 
   const year = currentDate.getFullYear();
 
   const month = currentDate.getMonth();
 
-
-  /* =========================================
-     CALCULATE FIRST DAY
-     ========================================= */
+  // =========================================
+  // CALCULATE FIRST DAY
+  // =========================================
 
   const firstDay = new Date(
     year,
     month,
     1
   ).getDay();
-
 
   /*
     JavaScript:
@@ -54,10 +79,9 @@ function CalendarGrid({ currentDate }) {
       ? 6
       : firstDay - 1;
 
-
-  /* =========================================
-     DAYS IN MONTH
-     ========================================= */
+  // =========================================
+  // DAYS IN MONTH
+  // =========================================
 
   const daysInMonth = new Date(
     year,
@@ -65,107 +89,82 @@ function CalendarGrid({ currentDate }) {
     0
   ).getDate();
 
-
   const daysInPreviousMonth = new Date(
     year,
     month,
     0
   ).getDate();
 
-
-  /* =========================================
-     TOTAL CALENDAR CELLS
-     ========================================= */
+  // =========================================
+  // TOTAL CALENDAR CELLS
+  // =========================================
 
   const totalCells =
     Math.ceil(
       (mondayFirstOffset + daysInMonth) / 7
     ) * 7;
 
-
   const calendarDays = [];
 
-
-  /* =========================================
-     CREATE CALENDAR DAYS
-     ========================================= */
+  // =========================================
+  // CREATE CALENDAR DAYS
+  // =========================================
 
   for (let i = 0; i < totalCells; i++) {
-
     const dayNumber =
       i - mondayFirstOffset + 1;
 
-
     // Previous month
-
     if (dayNumber < 1) {
-
       const previousMonthDay =
         daysInPreviousMonth + dayNumber;
 
       calendarDays.push({
         day: previousMonthDay,
-
         currentMonth: false,
-
         date: new Date(
           year,
           month - 1,
           previousMonthDay
         ),
       });
-
     }
 
-
     // Current month
-
     else if (dayNumber <= daysInMonth) {
-
       calendarDays.push({
         day: dayNumber,
-
         currentMonth: true,
-
         date: new Date(
           year,
           month,
           dayNumber
         ),
       });
-
     }
 
-
     // Next month
-
     else {
-
       const nextMonthDay =
         dayNumber - daysInMonth;
 
       calendarDays.push({
         day: nextMonthDay,
-
         currentMonth: false,
-
         date: new Date(
           year,
           month + 1,
           nextMonthDay
         ),
       });
-
     }
   }
 
-
-  /* =========================================
-     DATE KEY
-     ========================================= */
+  // =========================================
+  // DATE KEY
+  // =========================================
 
   const formatDateKey = (date) => {
-
     const dateYear =
       date.getFullYear();
 
@@ -182,13 +181,11 @@ function CalendarGrid({ currentDate }) {
     return `${dateYear}-${dateMonth}-${dateDay}`;
   };
 
-
-  /* =========================================
-     FULL DATE FOR POPUP
-     ========================================= */
+  // =========================================
+  // FULL DATE FOR POPUP
+  // =========================================
 
   const formatFullDate = (date) => {
-
     return date.toLocaleDateString(
       "en-US",
       {
@@ -199,10 +196,37 @@ function CalendarGrid({ currentDate }) {
     );
   };
 
+  // =========================================
+  // LOADING STATE
+  // =========================================
 
-  /* =========================================
-     RENDER
-     ========================================= */
+  if (loading) {
+    return (
+      <div className="calendar-container">
+        <div style={{ padding: "20px" }}>
+          Loading calendar...
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================
+  // ERROR STATE
+  // =========================================
+
+  if (error) {
+    return (
+      <div className="calendar-container">
+        <div style={{ padding: "20px", color: "red" }}>
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================
+  // RENDER
+  // =========================================
 
   return (
     <div className="calendar-container">
@@ -212,15 +236,12 @@ function CalendarGrid({ currentDate }) {
       <div className="calendar-weekdays">
 
         {weekdays.map((day) => (
-
           <div key={day}>
             {day}
           </div>
-
         ))}
 
       </div>
-
 
       {/* CALENDAR GRID */}
 
@@ -234,13 +255,11 @@ function CalendarGrid({ currentDate }) {
                 calendarDay.date
               );
 
-
+            // Find event received from backend
             const event =
               events[dateKey];
 
-
             return (
-
               <div
                 key={index}
                 className={`calendar-cell ${
@@ -257,30 +276,23 @@ function CalendarGrid({ currentDate }) {
                 {/* DATE */}
 
                 <div className="calendar-date">
-
                   {calendarDay.day}
-
                 </div>
-
 
                 {/* POPUP */}
 
                 {event && (
-
                   <div className="calendar-tooltip">
 
                     <div className="tooltip-title">
                       {event.title}
                     </div>
 
-
                     <div className="tooltip-workspace">
                       {event.workspace}
                     </div>
 
-
                     <div className="tooltip-divider" />
-
 
                     <div className="tooltip-date">
                       Deadline:{" "}
@@ -289,11 +301,9 @@ function CalendarGrid({ currentDate }) {
                       )}
                     </div>
 
-
                     <div
                       className={`tooltip-status ${event.urgency}`}
                     >
-
                       {event.urgency === "red" &&
                         "Urgent deadline"}
 
@@ -302,17 +312,13 @@ function CalendarGrid({ currentDate }) {
 
                       {event.urgency === "green" &&
                         "Later deadline"}
-
                     </div>
 
                   </div>
-
                 )}
 
               </div>
-
             );
-
           }
         )}
 
@@ -321,6 +327,5 @@ function CalendarGrid({ currentDate }) {
     </div>
   );
 }
-
 
 export default CalendarGrid;
