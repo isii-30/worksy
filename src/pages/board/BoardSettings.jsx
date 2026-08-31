@@ -5,7 +5,7 @@ import AddBoardMemberModal from "../../components/board/AddBoardMemberModal";
 import RemoveBoardMemberModal from "../../components/board/RemoveBoardMemberModal";
 import EditBoardModal from "../../components/board/EditBoardModal";
 import DeleteBoardModal from "../../components/board/DeleteBoardModal";
-import { boardService } from "../../services/kboardService";
+import { boardService } from "../../services/boardService";
 
 export default function BoardSettings({ boardId, onBack }) {
   const [board, setBoard] = useState(null);
