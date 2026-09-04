@@ -6,9 +6,6 @@ const router = express.Router();
 // Get all workspace members
 router.get("/members", membershipController.getMembers);
 
-// Get all board names
-router.get("/boards", membershipController.getBoardNames);
-
 // Send an invitation
 router.post("/invitations", membershipController.createInvitation);
 
