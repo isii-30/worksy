@@ -1,68 +1,72 @@
-const { mockBoards, mockBoardMembers, mockWorkspaceMembers } = require("../../data/mock/boards");
+const Board = require("./board.model");
+const BoardMember = require("./boardMember.model");
 
-let boards = [...mockBoards];
-let boardMembers = { ...mockBoardMembers };
-
-function getBoards(workspaceId) {
-  if (!workspaceId || workspaceId === "all") return [...boards];
-  return boards.filter((b) => b.workspaceId === workspaceId);
+async function getBoards(workspaceId) {
+  if (!workspaceId || workspaceId === "all") {
+    return Board.find().sort({ createdAt: -1 });
+  }
+  return Board.find({ workspace: workspaceId }).sort({ createdAt: -1 });
 }
 
-function getBoardById(boardId) {
-  return boards.find((b) => b.id === boardId) || null;
+async function getBoardById(boardId) {
+  return Board.findById(boardId);
 }
 
-function createBoard({ name, description, workspaceId, workspaceName, currentUserId }) {
-  const newBoard = {
-    id: "b" + Date.now(),
+async function createBoard({ name, description, workspaceId, currentUserId }) {
+  const board = await Board.create({
     name,
     description,
-    workspaceId,
-    workspaceName,
-    adminId: currentUserId,
-    updatedAt: new Date().toISOString(),
-  };
-  boards.push(newBoard);
-  boardMembers[newBoard.id] = [
-    { id: currentUserId, name: "You", email: "", avatar: null, role: "Admin" },
-  ];
-  return newBoard;
+    workspace: workspaceId,
+    createdBy: currentUserId,
+  });
+  await BoardMember.create({
+    board: board._id,
+    user: currentUserId,
+    role: "admin",
+    addedBy: currentUserId,
+  });
+  return board;
 }
 
-function updateBoard(boardId, { name, description }) {
-  boards = boards.map((b) =>
-    b.id === boardId ? { ...b, name, description, updatedAt: new Date().toISOString() } : b
+async function updateBoard(boardId, { name, description }) {
+  return Board.findByIdAndUpdate(
+    boardId,
+    { name, description },
+    { new: true } // return the updated document, not the old one
   );
-  return getBoardById(boardId);
 }
 
-function deleteBoard(boardId) {
-  const existed = getBoardById(boardId);
-  boards = boards.filter((b) => b.id !== boardId);
-  delete boardMembers[boardId];
-  return !!existed;
+async function deleteBoard(boardId) {
+  const deleted = await Board.findByIdAndDelete(boardId);
+  if (deleted) {
+    await BoardMember.deleteMany({ board: boardId });
+  }
+  return !!deleted;
 }
 
-function getBoardMembers(boardId) {
-  return boardMembers[boardId] ? [...boardMembers[boardId]] : [];
+async function getBoardMembers(boardId) {
+  return BoardMember.find({ board: boardId }).populate("user", "fullName email avatarUrl");
 }
 
-function getAddableMembers(boardId, workspaceId) {
-  const current = boardMembers[boardId] || [];
-  const currentIds = current.map((m) => m.id);
-  const workspacePool = mockWorkspaceMembers[workspaceId] || [];
-  return workspacePool.filter((m) => !currentIds.includes(m.id));
+async function getAddableMembers(boardId, workspaceId) {
+  // TODO: once Membership module's model exists, replace this with a real
+  // query for "workspace members not already on this board". For now this
+  // returns an empty list as a safe placeholder so the endpoint doesn't crash.
+  return [];
 }
 
-function addBoardMember(boardId, member) {
-  if (!boardMembers[boardId]) boardMembers[boardId] = [];
-  boardMembers[boardId].push({ ...member, role: "Member" });
-  return boardMembers[boardId];
+async function addBoardMember(boardId, userId, addedBy) {
+  return BoardMember.create({
+    board: boardId,
+    user: userId,
+    role: "member",
+    addedBy,
+  });
 }
 
-function removeBoardMember(boardId, memberId) {
-  boardMembers[boardId] = (boardMembers[boardId] || []).filter((m) => m.id !== memberId);
-  return boardMembers[boardId];
+async function removeBoardMember(boardId, userId) {
+  await BoardMember.deleteOne({ board: boardId, user: userId });
+  return BoardMember.find({ board: boardId });
 }
 
 module.exports = {
