@@ -1,20 +1,26 @@
-const mockUsers = require("../../data/mock/users");
 const authService = require("../auth/auth.service");
+const User = require("../auth/user.model");
 
-function getProfile() {
-  const current = authService.getCurrentUser();
-  return current || null;
+function toSafeUser(userDoc) {
+  const obj = userDoc.toObject();
+  delete obj.passwordHash;
+  return obj;
 }
 
-function updateProfile(updates) {
-  const current = authService.getCurrentUser();
+async function getProfile() {
+  return authService.getCurrentUser();
+}
+
+async function updateProfile(updates) {
+  const current = await authService.getCurrentUser();
   if (!current) return null;
 
-  const user = mockUsers.find((u) => u.id === current.id);
-  Object.assign(user, updates);
+  // Profile edits should never be able to change the password or email —
+  // those go through change-password / a dedicated flow instead.
+  const { passwordHash, password, email, ...safeUpdates } = updates;
 
-  const { password: _pw, ...safeUser } = user;
-  return safeUser;
+  const user = await User.findByIdAndUpdate(current._id, safeUpdates, { new: true });
+  return toSafeUser(user);
 }
 
 module.exports = { getProfile, updateProfile };
