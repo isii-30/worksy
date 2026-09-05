@@ -45,7 +45,7 @@ async function deleteBoard(boardId) {
 }
 
 async function getBoardMembers(boardId) {
-  return BoardMember.find({ board: boardId }).populate("user", "fullName email avatarUrl");
+  return BoardMember.find({ board: boardId }).populate("user", "firstName lastName email profileImage");
 }
 
 async function getAddableMembers(boardId, workspaceId) {
