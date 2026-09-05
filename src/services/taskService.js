@@ -1,3 +1,4 @@
+
 const API_BASE = "http://localhost:5000/api";
 
 // Get all tasks for a board
@@ -6,11 +7,13 @@ export const getTasks = async (boardId) => {
     `${API_BASE}/task/board/${boardId}`
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch tasks");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to fetch tasks"
+    );
+  }
 
   return result.data;
 };
@@ -21,11 +24,13 @@ export const getTask = async (taskId) => {
     `${API_BASE}/task/${taskId}`
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch task");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to fetch task"
+    );
+  }
 
   return result.data;
 };
@@ -43,11 +48,13 @@ export const createTask = async (boardId, task) => {
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to create task");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to create task"
+    );
+  }
 
   return result.data;
 };
@@ -65,11 +72,13 @@ export const updateTask = async (taskId, task) => {
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to update task");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to update task"
+    );
+  }
 
   return result.data;
 };
@@ -83,17 +92,22 @@ export const deleteTask = async (taskId) => {
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to delete task");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to delete task"
+    );
+  }
 
   return result.data;
 };
 
-// Move task
-export const moveTask = async (taskId, columnId) => {
+// Move task to another column
+export const moveTask = async (
+  taskId,
+  columnId
+) => {
   const response = await fetch(
     `${API_BASE}/task/${taskId}/move`,
     {
@@ -107,11 +121,14 @@ export const moveTask = async (taskId, columnId) => {
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to move task");
-  }
-
   const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Failed to move task"
+    );
+  }
 
   return result.data;
 };
+

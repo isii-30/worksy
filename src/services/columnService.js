@@ -1,5 +1,5 @@
-const API_BASE = "http://localhost:5000/api";
 
+const API_BASE = "http://localhost:5000/api";
 
 // Get all columns for a board
 export const getColumns = async (boardId) => {
@@ -18,7 +18,6 @@ export const getColumns = async (boardId) => {
   return result.data;
 };
 
-
 // Get one column
 export const getColumn = async (columnId) => {
   const response = await fetch(
@@ -36,9 +35,11 @@ export const getColumn = async (columnId) => {
   return result.data;
 };
 
-
 // Create column
-export const createColumn = async (boardId, column) => {
+export const createColumn = async (
+  boardId,
+  column
+) => {
   const response = await fetch(
     `${API_BASE}/column/board/${boardId}`,
     {
@@ -61,9 +62,11 @@ export const createColumn = async (boardId, column) => {
   return result.data;
 };
 
-
 // Update column
-export const updateColumn = async (columnId, column) => {
+export const updateColumn = async (
+  columnId,
+  column
+) => {
   const response = await fetch(
     `${API_BASE}/column/${columnId}`,
     {
@@ -86,9 +89,10 @@ export const updateColumn = async (columnId, column) => {
   return result.data;
 };
 
-
 // Delete column
-export const deleteColumn = async (columnId) => {
+export const deleteColumn = async (
+  columnId
+) => {
   const response = await fetch(
     `${API_BASE}/column/${columnId}`,
     {
@@ -106,3 +110,4 @@ export const deleteColumn = async (columnId) => {
 
   return result.data;
 };
+

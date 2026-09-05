@@ -1,17 +1,32 @@
+const mongoose = require("mongoose");
 const taskService = require("./task.service");
 
-// GET /api/boards/:boardId/tasks
-const getTasks = (req, res) => {
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
+
+// GET /api/task/board/:boardId
+const getTasks = async (req, res) => {
   try {
     const { boardId } = req.params;
 
-    const tasks = taskService.getTasksByBoard(boardId);
+    if (!isValidObjectId(boardId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid board ID",
+      });
+    }
+
+    const tasks =
+      await taskService.getTasksByBoard(boardId);
 
     res.status(200).json({
       success: true,
       data: tasks,
     });
   } catch (error) {
+    console.error("Get tasks error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to retrieve tasks",
@@ -20,12 +35,20 @@ const getTasks = (req, res) => {
   }
 };
 
-// GET /api/tasks/:taskId
-const getTask = (req, res) => {
+// GET /api/task/:taskId
+const getTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    const task = taskService.getTaskById(taskId);
+    if (!isValidObjectId(taskId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
+
+    const task =
+      await taskService.getTaskById(taskId);
 
     if (!task) {
       return res.status(404).json({
@@ -39,6 +62,8 @@ const getTask = (req, res) => {
       data: task,
     });
   } catch (error) {
+    console.error("Get task error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to retrieve task",
@@ -47,12 +72,18 @@ const getTask = (req, res) => {
   }
 };
 
-// POST /api/boards/:boardId/tasks
-const createTask = (req, res) => {
+// POST /api/task/board/:boardId
+const createTask = async (req, res) => {
   try {
     const { boardId } = req.params;
+    const { title, createdBy } = req.body;
 
-    const { title } = req.body;
+    if (!isValidObjectId(boardId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid board ID",
+      });
+    }
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -61,13 +92,34 @@ const createTask = (req, res) => {
       });
     }
 
-    const task = taskService.createTask(boardId, req.body);
+    if (!createdBy) {
+      return res.status(400).json({
+        success: false,
+        message: "createdBy is required",
+      });
+    }
+
+    if (!isValidObjectId(createdBy)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid createdBy user ID",
+      });
+    }
+
+    const task =
+      await taskService.createTask(
+        boardId,
+        req.body
+      );
 
     res.status(201).json({
       success: true,
       data: task,
+      message: "Task created successfully",
     });
   } catch (error) {
+    console.error("Create task error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to create task",
@@ -76,12 +128,23 @@ const createTask = (req, res) => {
   }
 };
 
-// PUT /api/tasks/:taskId
-const updateTask = (req, res) => {
+// PUT /api/task/:taskId
+const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    const task = taskService.updateTask(taskId, req.body);
+    if (!isValidObjectId(taskId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
+
+    const task =
+      await taskService.updateTask(
+        taskId,
+        req.body
+      );
 
     if (!task) {
       return res.status(404).json({
@@ -93,8 +156,11 @@ const updateTask = (req, res) => {
     res.status(200).json({
       success: true,
       data: task,
+      message: "Task updated successfully",
     });
   } catch (error) {
+    console.error("Update task error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to update task",
@@ -103,12 +169,20 @@ const updateTask = (req, res) => {
   }
 };
 
-// DELETE /api/tasks/:taskId
-const deleteTask = (req, res) => {
+// DELETE /api/task/:taskId
+const deleteTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    const task = taskService.deleteTask(taskId);
+    if (!isValidObjectId(taskId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
+
+    const task =
+      await taskService.deleteTask(taskId);
 
     if (!task) {
       return res.status(404).json({
@@ -123,6 +197,8 @@ const deleteTask = (req, res) => {
       message: "Task deleted successfully",
     });
   } catch (error) {
+    console.error("Delete task error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete task",
@@ -131,11 +207,18 @@ const deleteTask = (req, res) => {
   }
 };
 
-// PATCH /api/tasks/:taskId/move
-const moveTask = (req, res) => {
+// PATCH /api/task/:taskId/move
+const moveTask = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { columnId } = req.body;
+
+    if (!isValidObjectId(taskId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
 
     if (!columnId) {
       return res.status(400).json({
@@ -144,7 +227,18 @@ const moveTask = (req, res) => {
       });
     }
 
-    const task = taskService.moveTask(taskId, columnId);
+    if (!isValidObjectId(columnId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid column ID",
+      });
+    }
+
+    const task =
+      await taskService.moveTask(
+        taskId,
+        columnId
+      );
 
     if (!task) {
       return res.status(404).json({
@@ -159,6 +253,8 @@ const moveTask = (req, res) => {
       message: "Task moved successfully",
     });
   } catch (error) {
+    console.error("Move task error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to move task",
