@@ -1,6 +1,5 @@
 const API_BASE = "http://localhost:5000/api";
 
-// Small helper so every call doesn't repeat the same fetch/json/error dance
 const request = async (path, options) => {
   const response = await fetch(`${API_BASE}${path}`, options);
   const result = await response.json();
@@ -13,25 +12,26 @@ const request = async (path, options) => {
 };
 
 export const boardService = {
-  // FR-13: View boards for a workspace
+  // Get boards for a workspace ("all" for every board)
   async getBoards(workspaceId) {
-    return request(`/board/workspace/${workspaceId || "all"}`);
+    const query = workspaceId && workspaceId !== "all" ? `?workspaceId=${workspaceId}` : "";
+    return request(`/board${query}`);
   },
 
   async getBoardById(boardId) {
     return request(`/board/${boardId}`);
   },
 
-  // FR-12: Create board — creator becomes Board Admin
-  async createBoard({ name, description, workspaceId, workspaceName, currentUserId }) {
-    return request(`/board/workspace/${workspaceId}`, {
+  // Create board — creator becomes Board Admin
+  async createBoard({ name, description, workspaceId, currentUserId }) {
+    return request(`/board`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, workspaceName, currentUserId }),
+      body: JSON.stringify({ name, description, workspaceId, currentUserId }),
     });
   },
 
-  // FR-14: Edit board
+  // Edit board
   async updateBoard(boardId, { name, description }) {
     return request(`/board/${boardId}`, {
       method: "PUT",
@@ -40,42 +40,33 @@ export const boardService = {
     });
   },
 
-  // FR-15: Delete board
+  // Delete board
   async deleteBoard(boardId) {
     await request(`/board/${boardId}`, { method: "DELETE" });
     return true;
   },
 
-  // FR-19: View board members
+  // View board members
   async getBoardMembers(boardId) {
     return request(`/board/${boardId}/members`);
   },
 
-  // Members available to add = workspace members not already on the board (FR-17)
+  // Workspace members not already on the board
   async getAddableMembers(boardId, workspaceId) {
-    return request(`/board/${boardId}/addable-members?workspaceId=${workspaceId}`);
+    return request(`/board/${boardId}/available-members`);
   },
 
-  // FR-17: Add board member
+  // Add board member
   async addBoardMember(boardId, member) {
     return request(`/board/${boardId}/members`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(member),
+      body: JSON.stringify({ userId: member.userId || member.id, addedBy: member.addedBy }),
     });
   },
 
-  // FR-18: Remove board member
+  // Remove board member
   async removeBoardMember(boardId, memberId) {
     return request(`/board/${boardId}/members/${memberId}`, { method: "DELETE" });
-  },
-
-  // FR-16: Change Board Admin (old admin becomes normal member, board never left without one)
-  async changeBoardAdmin(boardId, newAdminId) {
-    return request(`/board/${boardId}/admin`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newAdminId }),
-    });
   },
 };
