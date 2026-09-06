@@ -104,12 +104,6 @@ export default function EditProfile() {
     }
   };
 
-  const acceptEmailSuggestion = () => {
-    if (!emailSuggestion) return;
-    setForm((prev) => ({ ...prev, email: emailSuggestion }));
-    setEmailSuggestion(null);
-  };
-
   const handleSave = async (e) => {
     e.preventDefault();
     setSaveError('');
@@ -186,19 +180,15 @@ export default function EditProfile() {
                 />
               </Field>
 
-              <Field label="Email Address" full error={touched.email && errors.email}>
+              <Field label="Email Address" full>
                 <input
                   type="email"
                   value={form.email}
-                  onChange={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  placeholder="Enter your email address"
+                  disabled
+                  readOnly
+                  title="Email can't be changed from here."
                 />
-                {!errors.email && emailSuggestion && (
-                  <button type="button" className="field__suggestion" onClick={acceptEmailSuggestion}>
-                    Did you mean <strong>{emailSuggestion}</strong>?
-                  </button>
-                )}
+                <span className="field__hint">Email address can't be changed here.</span>
               </Field>
 
               <Field label="Date of birth" full error={touched.dob && errors.dob}>
