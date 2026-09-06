@@ -10,7 +10,7 @@ import DeleteBoardModal from "../../components/board/DeleteBoardModal";
 import { boardService } from "../../services/boardService";
 import styles from "./BoardList.module.css";
 
-const CURRENT_USER_ID = "u1"; // TODO: replace with real auth user once P1's auth context exists
+const CURRENT_USER_ID = "64f000000000000000000099";
 const CARD_COLORS = ["#2f3c88", "#7c9cf0", "#4b5563", "#0f766e", "#9333ea"];
 function getCardColor(boardId) {
   const index = boardId.charCodeAt(boardId.length - 1) % CARD_COLORS.length;
@@ -109,7 +109,7 @@ export default function BoardList() {
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreate={handleCreate}
-        workspaceId={workspaceFilter !== "all" ? workspaceFilter : "w1"}
+       workspaceId="64f000000000000000000001"
         workspaceName={workspaceFilter === "w2" ? "Marketing Team" : "Product Team"}
       />
 
