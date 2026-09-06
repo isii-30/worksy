@@ -1,18 +1,8 @@
 const WorkspaceMember = require("./member.model");
 const WorkspaceInvitation = require("./invitation.model");
-const mongoose = require("mongoose");
-// TEMPORARY: Senali's User model isn't merged yet. Swap this whole block for
-// `const User = require("../auth/user.model");` after her model is on develop
-// and pulled into this branch.
-const User =
-  mongoose.models.User ||
-  mongoose.model(
-    "User",
-    new mongoose.Schema(
-      { fullName: String, email: String, passwordHash: String, avatarUrl: String },
-      { timestamps: true }
-    )
-  );
+// Senali's real User model (auth module). Adjust the path if her file lives
+// elsewhere — the model registered there is named "User".
+const User = require("../auth/user.model");
 
 // NOTE: for now we work within a single workspace. Replace this with the
 // real workspace id once workspace selection is wired in. Your old mock
@@ -23,7 +13,7 @@ const DEFAULT_WORKSPACE_ID = process.env.DEFAULT_WORKSPACE_ID || null;
 // Get all workspace members (populated with the user's basic details)
 const getMembers = async () => {
   const members = await WorkspaceMember.find()
-    .populate("user", "fullName email avatarUrl") // pull these fields from User
+    .populate("user", "firstName lastName email profileImage") // real User fields
     .lean();
   return members;
 };
