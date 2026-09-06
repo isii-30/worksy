@@ -1,70 +1,85 @@
-const mockUsers = require("../../data/mock/users");
+const bcrypt = require("bcryptjs");
+const User = require("./user.model");
 
+const SALT_ROUNDS = 10;
+
+// Same simple single-session approach you had with mockUsers — just backed
+// by the database now instead of an array.
 let currentUserId = null;
 
-function login(email, password) {
-  const user = mockUsers.find((u) => u.email === email && u.password === password);
-  if (!user) return null;
-
-  currentUserId = user.id;
-  const { password: _pw, ...safeUser } = user;
-  return safeUser;
+function toSafeUser(userDoc) {
+  const obj = userDoc.toObject();
+  delete obj.passwordHash;
+  return obj;
 }
 
-function logout() {
+async function login(email, password) {
+  const user = await User.findOne({ email });
+  if (!user) return null;
+
+  const match = await bcrypt.compare(password, user.passwordHash);
+  if (!match) return null;
+
+  currentUserId = user._id;
+  return toSafeUser(user);
+}
+
+async function logout() {
   currentUserId = null;
   return true;
 }
 
-function getCurrentUser() {
-  const user = mockUsers.find((u) => u.id === currentUserId);
+async function getCurrentUser() {
+  if (!currentUserId) return null;
+  const user = await User.findById(currentUserId);
   if (!user) return null;
-  const { password: _pw, ...safeUser } = user;
-  return safeUser;
+  return toSafeUser(user);
 }
 
-function register({ firstName, lastName, email, password }) {
-  const existing = mockUsers.find((u) => u.email === email);
+async function register({ firstName, lastName, email, password }) {
+  const existing = await User.findOne({ email });
   if (existing) {
     return { error: "An account with this email already exists." };
   }
 
-  const newUser = {
-    id: `u${mockUsers.length + 1}`,
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  const newUser = await User.create({
     firstName,
     lastName,
     email,
-    password,
-    dob: "",
-    contactNumber: "",
-    jobTitle: "",
-    bio: "",
-    profileImage: null,
-  };
+    passwordHash,
+  });
 
-  mockUsers.push(newUser);
-  currentUserId = newUser.id; // registering logs you straight in, same as most real apps
+  currentUserId = newUser._id; // registering logs you straight in, same as before
 
-  const { password: _pw, ...safeUser } = newUser;
-  return { data: safeUser };
+  return { data: toSafeUser(newUser) };
 }
 
-function changePassword(currentPassword, newPassword) {
-  const user = mockUsers.find((u) => u.id === currentUserId);
+async function changePassword(currentPassword, newPassword) {
+  if (!currentUserId) return { error: "Not logged in.", status: 401 };
+
+  const user = await User.findById(currentUserId);
   if (!user) return { error: "Not logged in.", status: 401 };
-  if (user.password !== currentPassword) {
+
+  const match = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!match) {
     return { error: "Current password is incorrect.", status: 401 };
   }
-  user.password = newPassword;
+
+  user.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await user.save();
   return { success: true };
 }
 
-function resetPassword(email, newPassword) {
-  const user = mockUsers.find((u) => u.email === email);
+async function resetPassword(email, newPassword) {
+  const user = await User.findOne({ email });
   if (!user) {
     return { error: "No account found with that email address.", status: 404 };
   }
-  user.password = newPassword;
+
+  user.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await user.save();
   return { success: true };
 }
 
