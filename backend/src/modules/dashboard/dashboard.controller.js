@@ -1,18 +1,18 @@
 const dashboardService = require("./dashboard.service");
+const authService = require("../auth/auth.service");
 
 const getDashboard = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const user = await authService.getCurrentUser();
 
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User authentication required",
+        message: "Not logged in.",
       });
     }
 
-    const dashboardData =
-      await dashboardService.getDashboardData(userId);
+    const dashboardData = await dashboardService.getDashboardData(user._id);
 
     return res.status(200).json({
       success: true,

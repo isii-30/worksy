@@ -1,117 +1,78 @@
-const getModels = () => {
-  /*
-   * ASSUMED MODEL PATHS
-   *
-   * Change these require paths if your teammates
-   * use different filenames.
-   */
-
-  const WorkspaceMember = require("../membership/workspaceMember.model");
-  const BoardMember = require("../board/boardMember.model");
-  const Task = require("../task/task.model");
-  const Column = require("../column/column.model");
-
-  return {
-    WorkspaceMember,
-    BoardMember,
-    Task,
-    Column,
-  };
-};
+const WorkspaceMember = require("../membership/member.model");
+const BoardMember = require("../board/boardMember.model");
+const Task = require("../task/task.model");
 
 const getDashboardData = async (userId) => {
-  const {
-    WorkspaceMember,
-    BoardMember,
-    Task,
-    Column,
-  } = getModels();
+  // -----------------------------------
+  // 1. Get user's workspaces
+  // -----------------------------------
 
-  // --------------------------------------------------
-  // 1. Count workspaces for the current user
-  // --------------------------------------------------
-
-  const workspaceCount = await WorkspaceMember.countDocuments({
+  const workspaceIds = await WorkspaceMember.distinct("workspace", {
     user: userId,
   });
 
-  // --------------------------------------------------
-  // 2. Find boards available to the current user
-  // --------------------------------------------------
+  const workspaceCount = workspaceIds.length;
 
-  const boardMemberships = await BoardMember.find({
+  // -----------------------------------
+  // 2. Get user's boards
+  // -----------------------------------
+
+  const boardIds = await BoardMember.distinct("board", {
     user: userId,
-  }).select("board");
-
-  const boardIds = boardMemberships.map(
-    (membership) => membership.board
-  );
+  });
 
   const boardCount = boardIds.length;
 
-  // --------------------------------------------------
-  // 3. Find tasks belonging to the user's boards
-  // --------------------------------------------------
+  // -----------------------------------
+  // 3. Task statistics
+  // -----------------------------------
 
-  const tasks = await Task.find({
+  const inProgressTaskCount = await Task.countDocuments({
     board: { $in: boardIds },
+    completed: false,
   });
-
-  const taskCount = tasks.length;
-
-  // --------------------------------------------------
-  // 4. Find completed tasks
-  //
-  // IMPORTANT:
-  // Task does NOT have a status field.
-  // Status comes from Column.
-  //
-  // We are temporarily assuming that a completed
-  // column is represented by isTodoColumn: false.
-  //
-  // THIS IS AN ASSUMPTION and may need to change.
-  // --------------------------------------------------
-
-  const columns = await Column.find({
-    board: { $in: boardIds },
-  });
-
-  const completedColumnIds = columns
-    .filter((column) => column.isTodoColumn === false)
-    .map((column) => column._id);
 
   const completedTaskCount = await Task.countDocuments({
     board: { $in: boardIds },
-    column: { $in: completedColumnIds },
+    completed: true,
   });
 
-  // --------------------------------------------------
-  // 5. Upcoming deadlines
-  // --------------------------------------------------
+  // -----------------------------------
+  // 4. Upcoming deadlines
+  // -----------------------------------
 
   const now = new Date();
 
   const upcomingTasks = await Task.find({
     board: { $in: boardIds },
-    dueDate: {
-      $gte: now,
-    },
+    dueDate: { $gte: now },
   })
     .sort({ dueDate: 1 })
     .limit(4)
-    .populate("board", "name");
+    .populate("board", "name")
+    .lean();
 
   const upcomingDeadlines = upcomingTasks.map((task) => {
     const dueDate = new Date(task.dueDate);
 
     return {
-      id: task._id,
-      day: dueDate.getDate().toString().padStart(2, "0"),
+      id: task._id.toString(),
+
+      day: dueDate
+        .getDate()
+        .toString()
+        .padStart(2, "0"),
+
       month: dueDate
-        .toLocaleString("en-US", { month: "short" })
+        .toLocaleString("en-US", {
+          month: "short",
+        })
         .toUpperCase(),
+
       title: task.title,
+
       project: task.board?.name || "Unknown Board",
+
       time: dueDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
@@ -119,19 +80,9 @@ const getDashboardData = async (userId) => {
     };
   });
 
-  // --------------------------------------------------
-  // 6. Overview
-  //
-  // We can calculate CREATED tasks from createdAt.
-  //
-  // Historical COMPLETED tasks cannot currently be
-  // calculated accurately because Task has no
-  // completedAt field.
-  //
-  // Therefore we temporarily return zero for completed.
-  // We can improve this later using ActivityLog if
-  // completion events are recorded there.
-  // --------------------------------------------------
+  // -----------------------------------
+  // 5. Overview - last 7 days
+  // -----------------------------------
 
   const overviewData = [];
 
@@ -156,14 +107,16 @@ const getDashboardData = async (userId) => {
       day: date.toLocaleString("en-US", {
         weekday: "short",
       }),
+
       completed: 0,
+
       created: createdCount,
     });
   }
 
-  // --------------------------------------------------
-  // Return the same structure expected by the frontend
-  // --------------------------------------------------
+  // -----------------------------------
+  // 6. Return Dashboard response
+  // -----------------------------------
 
   return {
     statistics: [
@@ -173,18 +126,21 @@ const getDashboardData = async (userId) => {
         value: workspaceCount,
         subtitle: "Total workspaces",
       },
+
       {
         id: 2,
         title: "Boards",
         value: boardCount,
         subtitle: "Total boards",
       },
+
       {
         id: 3,
         title: "Tasks",
-        value: taskCount,
+        value: inProgressTaskCount,
         subtitle: "In progress tasks",
       },
+
       {
         id: 4,
         title: "Completed",
