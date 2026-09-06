@@ -53,11 +53,11 @@ export const boardService = {
     return handleResponse(res);
   },
 
-  async addBoardMember(boardId, member) {
+    async addBoardMember(boardId, userId) {
     const res = await fetch(`${API_BASE}/board/${boardId}/members`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(member),
+      body: JSON.stringify({ userId }),
     });
     return handleResponse(res);
   },

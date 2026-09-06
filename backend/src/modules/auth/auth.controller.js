@@ -34,31 +34,39 @@ function validateRegistration({ firstName, lastName, email, password }) {
   return null; // no errors
 }
 
-function postLogin(req, res) {
-  const { email, password } = req.body;
-  const user = authService.login(email, password);
+async function postLogin(req, res) {
+  try {
+    const { email, password } = req.body;
+    const user = await authService.login(email, password);
 
-  if (!user) {
-    return res.status(401).json({ success: false, message: "Invalid email or password." });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid email or password." });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
-
-  res.status(200).json({ success: true, data: user });
 }
 
-function postLogout(req, res) {
-  authService.logout();
+async function postLogout(req, res) {
+  await authService.logout();
   res.status(200).json({ success: true, message: "Logged out." });
 }
 
-function getMe(req, res) {
-  const user = authService.getCurrentUser();
-  if (!user) {
-    return res.status(401).json({ success: false, message: "Not logged in." });
+async function getMe(req, res) {
+  try {
+    const user = await authService.getCurrentUser();
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Not logged in." });
+    }
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
-  res.status(200).json({ success: true, data: user });
 }
 
-function postRegister(req, res) {
+async function postRegister(req, res) {
   const { firstName, lastName, email, password } = req.body;
 
   const validationError = validateRegistration({ firstName, lastName, email, password });
@@ -66,16 +74,20 @@ function postRegister(req, res) {
     return res.status(400).json({ success: false, message: validationError });
   }
 
-  const result = authService.register({ firstName, lastName, email, password });
+  try {
+    const result = await authService.register({ firstName, lastName, email, password });
 
-  if (result.error) {
-    return res.status(409).json({ success: false, message: result.error });
+    if (result.error) {
+      return res.status(409).json({ success: false, message: result.error });
+    }
+
+    res.status(201).json({ success: true, data: result.data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
-
-  res.status(201).json({ success: true, data: result.data });
 }
 
-function postChangePassword(req, res) {
+async function postChangePassword(req, res) {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
@@ -96,15 +108,18 @@ function postChangePassword(req, res) {
     });
   }
 
-  const result = authService.changePassword(currentPassword, newPassword);
-  if (result.error) {
-    return res.status(result.status || 400).json({ success: false, message: result.error });
+  try {
+    const result = await authService.changePassword(currentPassword, newPassword);
+    if (result.error) {
+      return res.status(result.status || 400).json({ success: false, message: result.error });
+    }
+    res.status(200).json({ success: true, data: { message: "Password updated." } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
-
-  res.status(200).json({ success: true, data: { message: "Password updated." } });
 }
 
-function postResetPassword(req, res) {
+async function postResetPassword(req, res) {
   const { email, newPassword } = req.body;
 
   if (!email || !newPassword) {
@@ -125,12 +140,15 @@ function postResetPassword(req, res) {
     });
   }
 
-  const result = authService.resetPassword(email, newPassword);
-  if (result.error) {
-    return res.status(result.status || 400).json({ success: false, message: result.error });
+  try {
+    const result = await authService.resetPassword(email, newPassword);
+    if (result.error) {
+      return res.status(result.status || 400).json({ success: false, message: result.error });
+    }
+    res.status(200).json({ success: true, data: { message: "Password reset successfully." } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
-
-  res.status(200).json({ success: true, data: { message: "Password reset successfully." } });
 }
 
 module.exports = { postLogin, postLogout, getMe, postRegister, postChangePassword, postResetPassword };
