@@ -1,5 +1,6 @@
 const Board = require("./board.model");
 const BoardMember = require("./boardMember.model");
+const Column = require("../column/column.model");
 
 async function getBoards(workspaceId) {
   if (!workspaceId || workspaceId === "all") {
@@ -19,12 +20,22 @@ async function createBoard({ name, description, workspaceId, currentUserId }) {
     workspace: workspaceId,
     createdBy: currentUserId,
   });
+
   await BoardMember.create({
     board: board._id,
     user: currentUserId,
     role: "admin",
     addedBy: currentUserId,
   });
+
+  // Create the three default columns so the board isn't empty
+  // and the dashboard stat cards work (they read column.color).
+  await Column.create([
+    { board: board._id, title: "To Do", color: "todo", position: 0 },
+    { board: board._id, title: "In Progress", color: "progress", position: 1 },
+    { board: board._id, title: "Completed", color: "completed", position: 2 },
+  ]);
+
   return board;
 }
 
@@ -32,7 +43,7 @@ async function updateBoard(boardId, { name, description }) {
   return Board.findByIdAndUpdate(
     boardId,
     { name, description },
-    { new: true } // return the updated document, not the old one
+    { new: true }
   );
 }
 
@@ -40,12 +51,16 @@ async function deleteBoard(boardId) {
   const deleted = await Board.findByIdAndDelete(boardId);
   if (deleted) {
     await BoardMember.deleteMany({ board: boardId });
+    await Column.deleteMany({ board: boardId });
   }
   return !!deleted;
 }
 
 async function getBoardMembers(boardId) {
-  return BoardMember.find({ board: boardId }).populate("user", "firstName lastName email profileImage");
+  return BoardMember.find({ board: boardId }).populate(
+    "user",
+    "firstName lastName email profileImage"
+  );
 }
 
 async function getAddableMembers(boardId, workspaceId) {
