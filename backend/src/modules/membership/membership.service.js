@@ -1,32 +1,29 @@
-const {
-  mockMembers,
-  mockRegisteredUsers,
-} = require("../../data/mock/members");
+const WorkspaceMember = require("./member.model");
+const WorkspaceInvitation = require("./invitation.model");
+// Senali's real User model (auth module). Adjust the path if her file lives
+// elsewhere — the model registered there is named "User".
+const User = require("../auth/user.model");
 
-const {
-  mockWorkspaceBoards,
-} = require("../../data/mock/memberBoardNames");
+// NOTE: for now we work within a single workspace. Replace this with the
+// real workspace id once workspace selection is wired in. Your old mock
+// code used the string "w1"; here it must be a real Workspace ObjectId.
+// Until Senuja's workspaces exist, you can hardcode a seeded workspace id.
+const DEFAULT_WORKSPACE_ID = process.env.DEFAULT_WORKSPACE_ID || null;
 
-const {
-  mockInvitations,
-} = require("../../data/mock/invitations");
-
-// Get all workspace members
-const getMembers = () => {
-  return mockMembers;
-};
-
-// Get all board names
-const getBoardNames = () => {
-  return mockWorkspaceBoards;
+// Get all workspace members (populated with the user's basic details)
+const getMembers = async () => {
+  const members = await WorkspaceMember.find()
+    .populate("user", "firstName lastName email profileImage") // real User fields
+    .lean();
+  return members;
 };
 
 // Send an invitation to a registered Worksy user
-const createInvitation = (email) => {
-  // Find the registered user by email
-  const user = mockRegisteredUsers.find(
-    (user) => user.email.toLowerCase() === email.toLowerCase()
-  );
+const createInvitation = async (email, invitedBy) => {
+  // Find the registered user by email (from Senali's users collection)
+  const user = await User.findOne({
+    email: new RegExp(`^${email}$`, "i"), // case-insensitive exact match
+  });
 
   // User does not have a Worksy account
   if (!user) {
@@ -37,10 +34,7 @@ const createInvitation = (email) => {
   }
 
   // Check whether the user is already a workspace member
-  const existingMember = mockMembers.find(
-    (member) => member.id === user.id
-  );
-
+  const existingMember = await WorkspaceMember.findOne({ user: user._id });
   if (existingMember) {
     return {
       error: "ALREADY_MEMBER",
@@ -49,12 +43,10 @@ const createInvitation = (email) => {
   }
 
   // Check whether the user already has a pending invitation
-  const existingInvitation = mockInvitations.find(
-    (invitation) =>
-      invitation.userId === user.id &&
-      invitation.status === "pending"
-  );
-
+  const existingInvitation = await WorkspaceInvitation.findOne({
+    invitedUser: user._id,
+    status: "pending",
+  });
   if (existingInvitation) {
     return {
       error: "INVITATION_EXISTS",
@@ -63,37 +55,39 @@ const createInvitation = (email) => {
   }
 
   // Create the invitation
-  const invitation = {
-    id: `inv${mockInvitations.length + 1}`,
-    workspaceId: "w1",
-    userId: user.id,
-    email: user.email,
-    name: user.name,
+  const invitation = await WorkspaceInvitation.create({
+    workspace: DEFAULT_WORKSPACE_ID,
+    invitedUser: user._id,
+    invitedBy: invitedBy || null,
+    role: "member",
     status: "pending",
-  };
+  });
 
-  // Store invitation in mock data
-  mockInvitations.push(invitation);
-
-  return {
-    invitation,
-  };
+  return { invitation };
 };
 
 // Get invitations for a specific email
-const getInvitationsByEmail = (email) => {
-  return mockInvitations.filter(
-    (invitation) =>
-      invitation.email.toLowerCase() === email.toLowerCase()
-  );
+const getInvitationsByEmail = async (email) => {
+  // First find the user with that email, then their invitations
+  const user = await User.findOne({
+    email: new RegExp(`^${email}$`, "i"),
+  });
+
+  if (!user) {
+    return [];
+  }
+
+  const invitations = await WorkspaceInvitation.find({
+    invitedUser: user._id,
+  }).lean();
+
+  return invitations;
 };
 
 // Accept or decline an invitation
-const respondToInvitation = (invitationId, action) => {
+const respondToInvitation = async (invitationId, action) => {
   // Find the invitation
-  const invitation = mockInvitations.find(
-    (invitation) => invitation.id === invitationId
-  );
+  const invitation = await WorkspaceInvitation.findById(invitationId);
 
   if (!invitation) {
     return {
@@ -112,9 +106,7 @@ const respondToInvitation = (invitationId, action) => {
 
   // Accept invitation
   if (action === "accept") {
-    const user = mockRegisteredUsers.find(
-      (user) => user.id === invitation.userId
-    );
+    const user = await User.findById(invitation.invitedUser);
 
     if (!user) {
       return {
@@ -124,33 +116,28 @@ const respondToInvitation = (invitationId, action) => {
     }
 
     // Add the user to workspace members
-    const newMember = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: "Member",
-      board: null,
-      image: user.image || null,
-    };
-
-    mockMembers.push(newMember);
+    const newMember = await WorkspaceMember.create({
+      workspace: invitation.workspace,
+      user: user._id,
+      role: invitation.role || "member",
+      joinedAt: new Date(),
+    });
 
     // Update invitation status
     invitation.status = "accepted";
+    invitation.respondedAt = new Date();
+    await invitation.save();
 
-    return {
-      invitation,
-      member: newMember,
-    };
+    return { invitation, member: newMember };
   }
 
   // Decline invitation
   if (action === "decline") {
     invitation.status = "declined";
+    invitation.respondedAt = new Date();
+    await invitation.save();
 
-    return {
-      invitation,
-    };
+    return { invitation };
   }
 
   // Invalid action
@@ -162,7 +149,6 @@ const respondToInvitation = (invitationId, action) => {
 
 module.exports = {
   getMembers,
-  getBoardNames,
   createInvitation,
   getInvitationsByEmail,
   respondToInvitation,
