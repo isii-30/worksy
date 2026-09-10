@@ -37,26 +37,28 @@ function validateRegistration({ firstName, lastName, email, password }) {
 async function postLogin(req, res) {
   try {
     const { email, password } = req.body;
-    const user = await authService.login(email, password);
+    const result = await authService.login(email, password);
 
-    if (!user) {
+    if (!result) {
       return res.status(401).json({ success: false, message: "Invalid email or password." });
     }
 
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json({ success: true, data: result.user, token: result.token });
   } catch (err) {
     res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
 }
 
-async function postLogout(req, res) {
-  await authService.logout();
+function postLogout(req, res) {
+  // JWTs are stateless — there's nothing stored server-side to clear.
+  // The frontend just deletes its stored token. This route stays so the
+  // client always has something to call.
   res.status(200).json({ success: true, message: "Logged out." });
 }
 
 async function getMe(req, res) {
   try {
-    const user = await authService.getCurrentUser();
+    const user = await authService.getCurrentUser(req.user._id);
     if (!user) {
       return res.status(401).json({ success: false, message: "Not logged in." });
     }
@@ -81,7 +83,7 @@ async function postRegister(req, res) {
       return res.status(409).json({ success: false, message: result.error });
     }
 
-    res.status(201).json({ success: true, data: result.data });
+    res.status(201).json({ success: true, data: result.data, token: result.token });
   } catch (err) {
     res.status(500).json({ success: false, message: "Something went wrong. Try again." });
   }
@@ -109,7 +111,7 @@ async function postChangePassword(req, res) {
   }
 
   try {
-    const result = await authService.changePassword(currentPassword, newPassword);
+    const result = await authService.changePassword(req.user._id, currentPassword, newPassword);
     if (result.error) {
       return res.status(result.status || 400).json({ success: false, message: result.error });
     }

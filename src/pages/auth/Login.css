@@ -156,48 +156,6 @@
   background: #182338;
 }
 
-.login__divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 4px 0;
-}
-
-.login__divider span {
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.login__divider p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.login__google {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: clamp(10px, 1.6vh, 13px);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: #fff;
-  color: var(--color-text-primary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.login__google:hover {
-  border-color: var(--color-accent);
-  background: var(--color-bg-app);
-}
-
 .login__link {
   background: none;
   border: none;
