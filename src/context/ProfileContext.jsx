@@ -47,13 +47,34 @@ export function ProfileProvider({ children }) {
     return updated;
   };
 
+  const updateProfilePicture = async (file) => {
+    const updated = await profileService.uploadProfilePicture(file);
+    setProfile(updated);
+    return updated;
+  };
+
+  const removeProfilePicture = async () => {
+    const updated = await profileService.removeProfilePicture();
+    setProfile(updated);
+    return updated;
+  };
+
   const resetProfile = () => {
     setProfile(emptyProfile);
   };
 
   return (
     <ProfileContext.Provider
-      value={{ profile, updateProfile, isLoading, loadError, refreshProfile, resetProfile }}
+      value={{
+        profile,
+        updateProfile,
+        updateProfilePicture,
+        removeProfilePicture,
+        isLoading,
+        loadError,
+        refreshProfile,
+        resetProfile,
+      }}
     >
       {children}
     </ProfileContext.Provider>
