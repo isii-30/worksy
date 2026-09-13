@@ -8,7 +8,7 @@ export async function login(email, password) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || "Login failed.");
-  return json.data;
+  return json;
 }
 
 export async function register(firstName, lastName, email, password) {
@@ -19,20 +19,25 @@ export async function register(firstName, lastName, email, password) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || "Registration failed.");
-  return json.data;
+  return json;
 }
 
 export async function logout() {
   const res = await fetch(`${API_BASE}/auth/logout`, { method: "POST" });
   const json = await res.json();
+  localStorage.removeItem('worksy_token'); // clear it regardless of the response
   if (!res.ok) throw new Error(json.message || "Logout failed.");
   return json;
 }
 
 export async function changePassword(currentPassword, newPassword) {
+  const token = localStorage.getItem('worksy_token');
   const res = await fetch(`${API_BASE}/auth/change-password`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   const json = await res.json();
