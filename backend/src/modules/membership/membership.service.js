@@ -66,26 +66,19 @@ const createInvitation = async (email, invitedBy) => {
   return { invitation };
 };
 
-// Get invitations for a specific email
-const getInvitationsByEmail = async (email) => {
-  // First find the user with that email, then their invitations
-  const user = await User.findOne({
-    email: new RegExp(`^${email}$`, "i"),
-  });
-
-  if (!user) {
-    return [];
-  }
-
+// Get the logged-in user's own invitations
+const getInvitationsForUser = async (userId) => {
   const invitations = await WorkspaceInvitation.find({
-    invitedUser: user._id,
-  }).lean();
+    invitedUser: userId,
+  })
+    .populate("invitedBy", "firstName lastName email")
+    .lean();
 
   return invitations;
 };
 
 // Accept or decline an invitation
-const respondToInvitation = async (invitationId, action) => {
+const respondToInvitation = async (invitationId, action, userId) => {
   // Find the invitation
   const invitation = await WorkspaceInvitation.findById(invitationId);
 
@@ -93,6 +86,14 @@ const respondToInvitation = async (invitationId, action) => {
     return {
       error: "INVITATION_NOT_FOUND",
       message: "Invitation not found.",
+    };
+  }
+
+  // Only the invited user may respond to their own invitation
+  if (String(invitation.invitedUser) !== String(userId)) {
+    return {
+      error: "NOT_YOUR_INVITATION",
+      message: "This invitation does not belong to you.",
     };
   }
 
@@ -150,6 +151,6 @@ const respondToInvitation = async (invitationId, action) => {
 module.exports = {
   getMembers,
   createInvitation,
-  getInvitationsByEmail,
+  getInvitationsForUser,
   respondToInvitation,
 };

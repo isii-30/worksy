@@ -30,9 +30,8 @@ const createInvitation = async (req, res) => {
       });
     }
 
-    // invitedBy: the logged-in user's id.
-    // TODO: replace with the real authenticated user id once auth is wired.
-    const invitedBy = req.user ? req.user._id : null;
+    // invitedBy: the logged-in user's id, from the auth middleware
+    const invitedBy = req.user._id;
 
     const result = await membershipService.createInvitation(email, invitedBy);
 
@@ -74,19 +73,12 @@ const createInvitation = async (req, res) => {
   }
 };
 
-// Get invitations for a user
+// Get the logged-in user's own invitations
 const getInvitations = async (req, res) => {
   try {
-    const { email } = req.query;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required.",
-      });
-    }
-
-    const invitations = await membershipService.getInvitationsByEmail(email);
+    const invitations = await membershipService.getInvitationsForUser(
+      req.user._id
+    );
 
     res.status(200).json({
       success: true,
@@ -113,10 +105,21 @@ const respondToInvitation = async (req, res) => {
       });
     }
 
-    const result = await membershipService.respondToInvitation(id, action);
+    const result = await membershipService.respondToInvitation(
+      id,
+      action,
+      req.user._id
+    );
 
     if (result.error === "INVITATION_NOT_FOUND") {
       return res.status(404).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
+    if (result.error === "NOT_YOUR_INVITATION") {
+      return res.status(403).json({
         success: false,
         message: result.message,
       });
