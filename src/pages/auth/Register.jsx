@@ -119,7 +119,8 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
-      await authService.register(form.firstName, form.lastName, form.email, form.password);
+      const result = await authService.register(form.firstName, form.lastName, form.email, form.password);
+      localStorage.setItem('worksy_token', result.token);
       await refreshProfile();
       navigate('/dashboard');
     } catch (err) {
