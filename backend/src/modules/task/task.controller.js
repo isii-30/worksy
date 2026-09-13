@@ -47,10 +47,11 @@ const getTask = async (req, res) => {
 };
 
 // POST /api/task/board/:boardId
+// POST /api/task/board/:boardId
 const createTask = async (req, res) => {
   try {
     const { boardId } = req.params;
-    const { title, createdBy } = req.body;
+    const { title } = req.body;
 
     if (!isValidObjectId(boardId)) {
       return res.status(400).json({ success: false, message: "Invalid board ID" });
@@ -60,15 +61,7 @@ const createTask = async (req, res) => {
       return res.status(400).json({ success: false, message: "Task title is required" });
     }
 
-    if (!createdBy) {
-      return res.status(400).json({ success: false, message: "createdBy is required" });
-    }
-
-    if (!isValidObjectId(createdBy)) {
-      return res.status(400).json({ success: false, message: "Invalid createdBy user ID" });
-    }
-
-    const task = await taskService.createTask(boardId, req.body);
+    const task = await taskService.createTask(boardId, req.body, req.user._id);
 
     emitToBoard(task.boardId, "task:created", task);
 
@@ -78,6 +71,7 @@ const createTask = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to create task", error: error.message });
   }
 };
+
 
 // PUT /api/task/:taskId
 const updateTask = async (req, res) => {

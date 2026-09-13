@@ -57,13 +57,13 @@ const getTaskById = async (taskId) => {
 };
 
 // Create a task
-const createTask = async (boardId, taskData) => {
+const createTask = async (boardId, taskData, userId) => {
   if (!isValidObjectId(boardId)) {
     throw new Error("Invalid board ID");
   }
 
-  if (!isValidObjectId(taskData.createdBy)) {
-    throw new Error("Invalid createdBy user ID");
+  if (!isValidObjectId(userId)) {
+    throw new Error("Invalid user ID");
   }
 
   const title = taskData.title?.trim();
@@ -120,7 +120,7 @@ const createTask = async (boardId, taskData) => {
     type: taskData.type || taskData.category || "Development",
     dueDate,
     position,
-    createdBy: taskData.createdBy,
+    createdBy: userId,          // from the token now, never the request body
     assignee: taskData.assignee || null,
     completed: Boolean(taskData.completed),
   });

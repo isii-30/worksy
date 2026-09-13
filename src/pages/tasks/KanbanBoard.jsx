@@ -41,8 +41,7 @@ import ConfirmDialog from "../../components/tasks/ConfirmDialog";
 
 import "./KanbanBoard.css";
 
-// Same user ID currently used by BoardList.jsx
-const CURRENT_USER_ID = "64f000000000000000000099";
+
 
 // --- Local cache helpers -------------------------------------------------
 // Keeps the last-known columns/tasks for a board in localStorage so the
@@ -301,7 +300,7 @@ const KanbanBoard = () => {
         dueDate: newTask.dueDate || null,
         type: newTask.type || "Development",
         columnId: firstColumn.id,
-        createdBy: CURRENT_USER_ID,
+        
       });
 
       setTasks((prevTasks) => [...prevTasks, task]);
