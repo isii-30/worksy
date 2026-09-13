@@ -63,7 +63,8 @@ export default function Login() {
     setSubmitError('');
     setIsSubmitting(true);
     try {
-      await authService.login(form.email, form.password);
+      const result = await authService.login(form.email, form.password);
+      localStorage.setItem('worksy_token', result.token);
       await refreshProfile();
       navigate('/dashboard');
     } catch (err) {
