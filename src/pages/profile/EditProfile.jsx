@@ -68,13 +68,13 @@ export default function EditProfile() {
   useEffect(() => {
     if (!isLoading && form === null) {
       setForm({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        dob: profile.dob,
-        contactNumber: profile.contactNumber,
-        jobTitle: profile.jobTitle,
-        bio: profile.bio,
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || '',
+        dob: profile.dob ? profile.dob.slice(0, 10) : '',
+        contactNumber: profile.contactNumber || '',
+        jobTitle: profile.jobTitle || '',
+        bio: profile.bio || '',
       });
     }
   }, [isLoading, profile, form]);
