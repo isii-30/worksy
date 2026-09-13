@@ -1,4 +1,5 @@
 import { UserRound, Mail, Phone, Calendar, Briefcase, X } from 'lucide-react';
+import { resolveProfileImageUrl } from '../../services/profileService';
 import './ViewProfileModal.css';
 
 export default function ViewProfileModal({ user, onClose }) {
@@ -23,7 +24,7 @@ export default function ViewProfileModal({ user, onClose }) {
         <div className="view-profile-modal__header">
           <div className="view-profile-modal__avatar">
             {user.profileImage ? (
-              <img src={user.profileImage} alt={user.fullName} className="view-profile-modal__avatar-img" />
+              <img src={resolveProfileImageUrl(user.profileImage)} alt={user.fullName} className="view-profile-modal__avatar-img" />
             ) : (
               <UserRound size={40} />
             )}

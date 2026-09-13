@@ -4,6 +4,7 @@ import { UserRound, Camera, Lock, Eye, EyeOff } from 'lucide-react';
 import DatePicker from '../../components/common/DatePicker';
 import ProfilePictureModal from '../../components/profile/ProfilePictureModal';
 import { useProfile } from '../../context/ProfileContext';
+import { resolveProfileImageUrl } from '../../services/profileService';
 import { getEmailFormatError, getEmailDomainSuggestion } from '../../utils/emailValidation';
 import * as authService from '../../services/authService';
 import './EditProfile.css';
@@ -54,8 +55,7 @@ const inputFilters = {
 };
 
 export default function EditProfile() {
-  const { profile, updateProfile, isLoading, loadError } = useProfile();
-
+  const { profile, updateProfile, updateProfilePicture, removeProfilePicture, isLoading, loadError } = useProfile();
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -225,8 +225,8 @@ export default function EditProfile() {
               <div className="edit-profile__avatar">
                 <div className="edit-profile__avatar-circle">
                   {profile.profileImage ? (
-                    <img src={profile.profileImage} alt="Your profile" className="edit-profile__avatar-img" />
-                  ) : (
+  <img src={resolveProfileImageUrl(profile.profileImage)} alt="Your profile" className="edit-profile__avatar-img" />
+) : (
                     <UserRound size={36} />
                   )}
                 </div>
@@ -267,16 +267,16 @@ export default function EditProfile() {
 
       {isPictureModalOpen && (
         <ProfilePictureModal
-          currentImage={profile.profileImage}
+          currentImage={resolveProfileImageUrl(profile.profileImage)}
           onClose={() => setIsPictureModalOpen(false)}
-          onSave={async (file, previewUrl) => {
-            await updateProfile({ profileImage: previewUrl });
-          }}
+          onSave={async (file) => {
+            await updateProfilePicture(file);
+    }}
           onRemove={async () => {
-            await updateProfile({ profileImage: null });
-          }}
-        />
-      )}
+            await removeProfilePicture();
+    }}
+  />
+)}
     </div>
   );
 }

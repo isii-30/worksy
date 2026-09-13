@@ -1,16 +1,22 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("./user.model");
 
 const SALT_ROUNDS = 10;
-
-// Same simple single-session approach you had with mockUsers — just backed
-// by the database now instead of an array.
-let currentUserId = null;
 
 function toSafeUser(userDoc) {
   const obj = userDoc.toObject();
   delete obj.passwordHash;
   return obj;
+}
+
+// Issues a token that identifies one specific user. This replaces the old
+// shared `currentUserId` variable — instead of the server remembering who's
+// logged in, each request now carries its own proof of identity.
+function issueToken(userId) {
+  return jwt.sign({ sub: userId.toString() }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  });
 }
 
 async function login(email, password) {
@@ -20,18 +26,13 @@ async function login(email, password) {
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) return null;
 
-  currentUserId = user._id;
-  return toSafeUser(user);
+  const token = issueToken(user._id);
+  return { user: toSafeUser(user), token };
 }
 
-async function logout() {
-  currentUserId = null;
-  return true;
-}
-
-async function getCurrentUser() {
-  if (!currentUserId) return null;
-  const user = await User.findById(currentUserId);
+async function getCurrentUser(userId) {
+  if (!userId) return null;
+  const user = await User.findById(userId);
   if (!user) return null;
   return toSafeUser(user);
 }
@@ -51,15 +52,15 @@ async function register({ firstName, lastName, email, password }) {
     passwordHash,
   });
 
-  currentUserId = newUser._id; // registering logs you straight in, same as before
+  const token = issueToken(newUser._id); // registering logs you straight in, same as before
 
-  return { data: toSafeUser(newUser) };
+  return { data: toSafeUser(newUser), token };
 }
 
-async function changePassword(currentPassword, newPassword) {
-  if (!currentUserId) return { error: "Not logged in.", status: 401 };
+async function changePassword(userId, currentPassword, newPassword) {
+  if (!userId) return { error: "Not logged in.", status: 401 };
 
-  const user = await User.findById(currentUserId);
+  const user = await User.findById(userId);
   if (!user) return { error: "Not logged in.", status: 401 };
 
   const match = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -83,4 +84,4 @@ async function resetPassword(email, newPassword) {
   return { success: true };
 }
 
-module.exports = { login, logout, getCurrentUser, register, changePassword, resetPassword };
+module.exports = { login, getCurrentUser, register, changePassword, resetPassword, issueToken };
