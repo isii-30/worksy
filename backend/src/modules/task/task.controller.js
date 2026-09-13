@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const taskService = require("./task.service");
+const { emitToBoard } = require("../../socket");
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
@@ -11,27 +12,15 @@ const getTasks = async (req, res) => {
     const { boardId } = req.params;
 
     if (!isValidObjectId(boardId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid board ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid board ID" });
     }
 
-    const tasks =
-      await taskService.getTasksByBoard(boardId);
+    const tasks = await taskService.getTasksByBoard(boardId);
 
-    res.status(200).json({
-      success: true,
-      data: tasks,
-    });
+    res.status(200).json({ success: true, data: tasks });
   } catch (error) {
     console.error("Get tasks error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve tasks",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to retrieve tasks", error: error.message });
   }
 };
 
@@ -41,34 +30,19 @@ const getTask = async (req, res) => {
     const { taskId } = req.params;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid task ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid task ID" });
     }
 
-    const task =
-      await taskService.getTaskById(taskId);
+    const task = await taskService.getTaskById(taskId);
 
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+      return res.status(404).json({ success: false, message: "Task not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: task,
-    });
+    res.status(200).json({ success: true, data: task });
   } catch (error) {
     console.error("Get task error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve task",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to retrieve task", error: error.message });
   }
 };
 
@@ -79,52 +53,29 @@ const createTask = async (req, res) => {
     const { title, createdBy } = req.body;
 
     if (!isValidObjectId(boardId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid board ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid board ID" });
     }
 
     if (!title || !title.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Task title is required",
-      });
+      return res.status(400).json({ success: false, message: "Task title is required" });
     }
 
     if (!createdBy) {
-      return res.status(400).json({
-        success: false,
-        message: "createdBy is required",
-      });
+      return res.status(400).json({ success: false, message: "createdBy is required" });
     }
 
     if (!isValidObjectId(createdBy)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid createdBy user ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid createdBy user ID" });
     }
 
-    const task =
-      await taskService.createTask(
-        boardId,
-        req.body
-      );
+    const task = await taskService.createTask(boardId, req.body);
 
-    res.status(201).json({
-      success: true,
-      data: task,
-      message: "Task created successfully",
-    });
+    emitToBoard(task.boardId, "task:created", task);
+
+    res.status(201).json({ success: true, data: task, message: "Task created successfully" });
   } catch (error) {
     console.error("Create task error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create task",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to create task", error: error.message });
   }
 };
 
@@ -134,38 +85,30 @@ const updateTask = async (req, res) => {
     const { taskId } = req.params;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(400).json({
+      return res.status(400).json({ success: false, message: "Invalid task ID" });
+    }
+
+    const result = await taskService.updateTask(taskId, req.body);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    if (result.error === taskService.CONFLICT) {
+      return res.status(409).json({
         success: false,
-        message: "Invalid task ID",
+        conflict: true,
+        message: "This was changed by someone else — reload.",
+        data: result.current,
       });
     }
 
-    const task =
-      await taskService.updateTask(
-        taskId,
-        req.body
-      );
+    emitToBoard(result.boardId, "task:updated", result);
 
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: task,
-      message: "Task updated successfully",
-    });
+    res.status(200).json({ success: true, data: result, message: "Task updated successfully" });
   } catch (error) {
     console.error("Update task error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update task",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to update task", error: error.message });
   }
 };
 
@@ -175,35 +118,21 @@ const deleteTask = async (req, res) => {
     const { taskId } = req.params;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid task ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid task ID" });
     }
 
-    const task =
-      await taskService.deleteTask(taskId);
+    const task = await taskService.deleteTask(taskId);
 
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+      return res.status(404).json({ success: false, message: "Task not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: task,
-      message: "Task deleted successfully",
-    });
+    emitToBoard(task.boardId, "task:deleted", task);
+
+    res.status(200).json({ success: true, data: task, message: "Task deleted successfully" });
   } catch (error) {
     console.error("Delete task error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete task",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to delete task", error: error.message });
   }
 };
 
@@ -211,55 +140,41 @@ const deleteTask = async (req, res) => {
 const moveTask = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { columnId } = req.body;
+    const { columnId, version } = req.body;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid task ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid task ID" });
     }
 
     if (!columnId) {
-      return res.status(400).json({
-        success: false,
-        message: "columnId is required",
-      });
+      return res.status(400).json({ success: false, message: "columnId is required" });
     }
 
     if (!isValidObjectId(columnId)) {
-      return res.status(400).json({
+      return res.status(400).json({ success: false, message: "Invalid column ID" });
+    }
+
+    const result = await taskService.moveTask(taskId, columnId, version);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    if (result.error === taskService.CONFLICT) {
+      return res.status(409).json({
         success: false,
-        message: "Invalid column ID",
+        conflict: true,
+        message: "This was changed by someone else — reload.",
+        data: result.current,
       });
     }
 
-    const task =
-      await taskService.moveTask(
-        taskId,
-        columnId
-      );
+    emitToBoard(result.boardId, "task:moved", result);
 
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: task,
-      message: "Task moved successfully",
-    });
+    res.status(200).json({ success: true, data: result, message: "Task moved successfully" });
   } catch (error) {
     console.error("Move task error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to move task",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to move task", error: error.message });
   }
 };
 

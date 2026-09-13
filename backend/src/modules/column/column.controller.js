@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const columnService = require("./column.service");
+const { emitToBoard } = require("../../socket");
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
@@ -11,26 +12,15 @@ const getColumns = async (req, res) => {
     const { boardId } = req.params;
 
     if (!isValidObjectId(boardId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid board ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid board ID" });
     }
 
     const columns = await columnService.getColumnsByBoard(boardId);
 
-    res.status(200).json({
-      success: true,
-      data: columns,
-    });
+    res.status(200).json({ success: true, data: columns });
   } catch (error) {
     console.error("Get columns error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve columns",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to retrieve columns", error: error.message });
   }
 };
 
@@ -40,33 +30,19 @@ const getColumn = async (req, res) => {
     const { columnId } = req.params;
 
     if (!isValidObjectId(columnId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid column ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid column ID" });
     }
 
     const column = await columnService.getColumnById(columnId);
 
     if (!column) {
-      return res.status(404).json({
-        success: false,
-        message: "Column not found",
-      });
+      return res.status(404).json({ success: false, message: "Column not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: column,
-    });
+    res.status(200).json({ success: true, data: column });
   } catch (error) {
     console.error("Get column error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve column",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to retrieve column", error: error.message });
   }
 };
 
@@ -77,37 +53,21 @@ const createColumn = async (req, res) => {
     const { title } = req.body;
 
     if (!isValidObjectId(boardId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid board ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid board ID" });
     }
 
     if (!title || !title.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Column title is required",
-      });
+      return res.status(400).json({ success: false, message: "Column title is required" });
     }
 
-    const column = await columnService.createColumn(
-      boardId,
-      req.body
-    );
+    const column = await columnService.createColumn(boardId, req.body);
 
-    res.status(201).json({
-      success: true,
-      data: column,
-      message: "Column created successfully",
-    });
+    emitToBoard(column.boardId, "column:created", column);
+
+    res.status(201).json({ success: true, data: column, message: "Column created successfully" });
   } catch (error) {
     console.error("Create column error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create column",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to create column", error: error.message });
   }
 };
 
@@ -118,44 +78,25 @@ const updateColumn = async (req, res) => {
     const { title } = req.body;
 
     if (!isValidObjectId(columnId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid column ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid column ID" });
     }
 
     if (title !== undefined && !title.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Column title is required",
-      });
+      return res.status(400).json({ success: false, message: "Column title is required" });
     }
 
-    const column = await columnService.updateColumn(
-      columnId,
-      req.body
-    );
+    const column = await columnService.updateColumn(columnId, req.body);
 
     if (!column) {
-      return res.status(404).json({
-        success: false,
-        message: "Column not found",
-      });
+      return res.status(404).json({ success: false, message: "Column not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: column,
-      message: "Column updated successfully",
-    });
+    emitToBoard(column.boardId, "column:updated", column);
+
+    res.status(200).json({ success: true, data: column, message: "Column updated successfully" });
   } catch (error) {
     console.error("Update column error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update column",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to update column", error: error.message });
   }
 };
 
@@ -165,42 +106,25 @@ const deleteColumn = async (req, res) => {
     const { columnId } = req.params;
 
     if (!isValidObjectId(columnId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid column ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid column ID" });
     }
 
     const column = await columnService.deleteColumn(columnId);
 
     if (!column) {
-      return res.status(404).json({
-        success: false,
-        message: "Column not found",
-      });
+      return res.status(404).json({ success: false, message: "Column not found" });
     }
 
     if (column.error === "COLUMN_NOT_EMPTY") {
-      return res.status(409).json({
-        success: false,
-        message:
-          "Cannot delete a column that contains tasks",
-      });
+      return res.status(409).json({ success: false, message: "Cannot delete a column that contains tasks" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: column,
-      message: "Column deleted successfully",
-    });
+    emitToBoard(column.boardId, "column:deleted", column);
+
+    res.status(200).json({ success: true, data: column, message: "Column deleted successfully" });
   } catch (error) {
     console.error("Delete column error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete column",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to delete column", error: error.message });
   }
 };
 

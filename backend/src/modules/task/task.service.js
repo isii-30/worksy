@@ -6,6 +6,8 @@ const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
+const CONFLICT = "VERSION_CONFLICT";
+
 const categoryColors = {
   Design: "blue",
   Research: "green",
@@ -21,8 +23,7 @@ const formatTask = (task) => {
   return {
     ...data,
     category: data.type,
-    categoryColor:
-      categoryColors[data.type] || "purple",
+    categoryColor: categoryColors[data.type] || "purple",
   };
 };
 
@@ -32,9 +33,7 @@ const getTasksByBoard = async (boardId) => {
     return [];
   }
 
-  const tasks = await Task.find({
-    board: boardId,
-  }).sort({
+  const tasks = await Task.find({ board: boardId }).sort({
     position: 1,
     createdAt: 1,
   });
@@ -75,18 +74,13 @@ const createTask = async (boardId, taskData) => {
 
   let columnId = taskData.columnId;
 
-  // If no column was supplied, use the first column
   if (!columnId) {
-    const firstColumn = await Column.findOne({
-      board: boardId,
-    }).sort({
+    const firstColumn = await Column.findOne({ board: boardId }).sort({
       position: 1,
     });
 
     if (!firstColumn) {
-      throw new Error(
-        "Cannot create task because this board has no columns"
-      );
+      throw new Error("Cannot create task because this board has no columns");
     }
 
     columnId = firstColumn._id;
@@ -96,28 +90,18 @@ const createTask = async (boardId, taskData) => {
     throw new Error("Invalid column ID");
   }
 
-  const column = await Column.findOne({
-    _id: columnId,
-    board: boardId,
-  });
+  const column = await Column.findOne({ _id: columnId, board: boardId });
 
   if (!column) {
-    throw new Error(
-      "Column does not belong to this board"
-    );
+    throw new Error("Column does not belong to this board");
   }
 
-  // Put task at the end of the selected column
   const lastTask = await Task.findOne({
     board: boardId,
     column: column._id,
-  }).sort({
-    position: -1,
-  });
+  }).sort({ position: -1 });
 
-  const position = lastTask
-    ? lastTask.position + 1
-    : 0;
+  const position = lastTask ? lastTask.position + 1 : 0;
 
   let dueDate = null;
 
@@ -133,10 +117,7 @@ const createTask = async (boardId, taskData) => {
     board: boardId,
     column: column._id,
     title,
-    type:
-      taskData.type ||
-      taskData.category ||
-      "Development",
+    type: taskData.type || taskData.category || "Development",
     dueDate,
     position,
     createdBy: taskData.createdBy,
@@ -157,6 +138,16 @@ const updateTask = async (taskId, taskData) => {
 
   if (!task) {
     return null;
+  }
+
+  // Conflict check: if the caller tells us which version they last saw,
+  // and it no longer matches what's in the database, someone else already
+  // changed this task in between. Reject instead of silently overwriting.
+  if (
+    taskData.version !== undefined &&
+    Number(taskData.version) !== task.version
+  ) {
+    return { error: CONFLICT, current: formatTask(task) };
   }
 
   const update = {};
@@ -201,7 +192,6 @@ const updateTask = async (taskId, taskData) => {
     update.position = Number(taskData.position);
   }
 
-  // Allow changing a task's column
   if (taskData.columnId !== undefined) {
     if (!isValidObjectId(taskData.columnId)) {
       throw new Error("Invalid column ID");
@@ -213,17 +203,13 @@ const updateTask = async (taskId, taskData) => {
     });
 
     if (!targetColumn) {
-      throw new Error(
-        "Column does not belong to this board"
-      );
+      throw new Error("Column does not belong to this board");
     }
 
     update.column = targetColumn._id;
 
-    // Automatically update completed status
     if (taskData.completed === undefined) {
-      update.completed =
-        targetColumn.color === "completed";
+      update.completed = targetColumn.color === "completed";
     }
   }
 
@@ -236,15 +222,10 @@ const updateTask = async (taskId, taskData) => {
   const updatedTask = await Task.findByIdAndUpdate(
     taskId,
     { $set: update },
-    {
-      new: true,
-      runValidators: true,
-    }
+    { new: true, runValidators: true }
   );
 
-  return updatedTask
-    ? formatTask(updatedTask)
-    : null;
+  return updatedTask ? formatTask(updatedTask) : null;
 };
 
 // Delete a task
@@ -253,20 +234,14 @@ const deleteTask = async (taskId) => {
     return null;
   }
 
-  const deletedTask =
-    await Task.findByIdAndDelete(taskId);
+  const deletedTask = await Task.findByIdAndDelete(taskId);
 
-  return deletedTask
-    ? formatTask(deletedTask)
-    : null;
+  return deletedTask ? formatTask(deletedTask) : null;
 };
 
 // Move a task to another column
-const moveTask = async (taskId, columnId) => {
-  if (
-    !isValidObjectId(taskId) ||
-    !isValidObjectId(columnId)
-  ) {
+const moveTask = async (taskId, columnId, expectedVersion) => {
+  if (!isValidObjectId(taskId) || !isValidObjectId(columnId)) {
     return null;
   }
 
@@ -276,33 +251,36 @@ const moveTask = async (taskId, columnId) => {
     return null;
   }
 
+  // Same conflict check as updateTask — this is the drag-and-drop path,
+  // which is where two people are most likely to collide in practice.
+  if (
+    expectedVersion !== undefined &&
+    expectedVersion !== null &&
+    Number(expectedVersion) !== task.version
+  ) {
+    return { error: CONFLICT, current: formatTask(task) };
+  }
+
   const targetColumn = await Column.findOne({
     _id: columnId,
     board: task.board,
   });
 
   if (!targetColumn) {
-    throw new Error(
-      "Target column does not belong to this board"
-    );
+    throw new Error("Target column does not belong to this board");
   }
 
   const lastTask = await Task.findOne({
     board: task.board,
     column: targetColumn._id,
     _id: { $ne: task._id },
-  }).sort({
-    position: -1,
-  });
+  }).sort({ position: -1 });
 
-  const newPosition = lastTask
-    ? lastTask.position + 1
-    : 0;
+  const newPosition = lastTask ? lastTask.position + 1 : 0;
 
   task.column = targetColumn._id;
   task.position = newPosition;
-  task.completed =
-    targetColumn.color === "completed";
+  task.completed = targetColumn.color === "completed";
   task.version += 1;
 
   await task.save();
@@ -317,4 +295,5 @@ module.exports = {
   updateTask,
   deleteTask,
   moveTask,
+  CONFLICT,
 };

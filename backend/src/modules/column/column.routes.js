@@ -1,7 +1,10 @@
 const express = require("express");
 const columnController = require("./column.controller");
+const { requireAuth } = require("../../middleware/auth");
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 // GET all columns for a board  → /api/column/board/:boardId
 router.get("/board/:boardId", columnController.getColumns);

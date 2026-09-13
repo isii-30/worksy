@@ -1,4 +1,3 @@
-
 import React, {
   useEffect,
   useMemo,
@@ -33,6 +32,7 @@ import {
 } from "../../services/taskService";
 
 import { boardService } from "../../services/boardService";
+import socketService from "../../services/socketService";
 
 import CreateTaskModal from "../../components/tasks/CreateTaskModal";
 import CreateColumnModal from "../../components/tasks/CreateColumnModal";
@@ -42,63 +42,56 @@ import ConfirmDialog from "../../components/tasks/ConfirmDialog";
 import "./KanbanBoard.css";
 
 // Same user ID currently used by BoardList.jsx
-const CURRENT_USER_ID =
-  "64f000000000000000000099";
+const CURRENT_USER_ID = "64f000000000000000000099";
+
+// --- Local cache helpers -------------------------------------------------
+// Keeps the last-known columns/tasks for a board in localStorage so the
+// page still shows something after a refresh or a short internet drop,
+// instead of a blank loading screen or an error.
+const cacheKey = (boardId) => `worksy_board_cache_${boardId}`;
+
+function loadCache(boardId) {
+  try {
+    const raw = localStorage.getItem(cacheKey(boardId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(boardId, data) {
+  try {
+    localStorage.setItem(cacheKey(boardId), JSON.stringify(data));
+  } catch {
+    // Storage full/unavailable — caching is a nice-to-have, not critical.
+  }
+}
 
 const KanbanBoard = () => {
   const { boardId } = useParams();
 
   const [board, setBoard] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [columns, setColumns] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isOffline, setIsOffline] = useState(false);
+  const [conflictNotice, setConflictNotice] = useState("");
 
-  const [searchText, setSearchText] =
-    useState("");
-
-  const [columns, setColumns] =
-    useState([]);
-
-  const [tasks, setTasks] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [isMenuOpen, setIsMenuOpen] =
-    useState(false);
-
-  const [
-    isCreateTaskModalOpen,
-    setIsCreateTaskModalOpen,
-  ] = useState(false);
-
-  const [
-    isCreateColumnModalOpen,
-    setIsCreateColumnModalOpen,
-  ] = useState(false);
-
-  const [
-    isEditColumnModalOpen,
-    setIsEditColumnModalOpen,
-  ] = useState(false);
-
-  const [selectedColumn, setSelectedColumn] =
-    useState(null);
-
-  const [columnToDelete, setColumnToDelete] =
-    useState(null);
-
-  const [taskToDelete, setTaskToDelete] =
-    useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [isCreateColumnModalOpen, setIsCreateColumnModalOpen] = useState(false);
+  const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState(null);
+  const [columnToDelete, setColumnToDelete] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   const menuRef = useRef(null);
 
   /*
-   * Load:
-   * 1. Board information
-   * 2. Columns belonging to this board
-   * 3. Tasks belonging to this board
+   * Load board data. Shows cached data immediately (if any) while the
+   * real request is in flight, and falls back to it if the request fails.
    */
   useEffect(() => {
     const loadBoardData = async () => {
@@ -108,15 +101,20 @@ const KanbanBoard = () => {
         return;
       }
 
+      const cached = loadCache(boardId);
+
+      if (cached) {
+        setBoard(cached.board);
+        setColumns(cached.columns);
+        setTasks(cached.tasks);
+        setLoading(false);
+      }
+
       try {
-        setLoading(true);
+        if (!cached) setLoading(true);
         setError("");
 
-        const [
-          boardData,
-          columnsData,
-          tasksData,
-        ] = await Promise.all([
+        const [boardData, columnsData, tasksData] = await Promise.all([
           boardService.getBoardById(boardId),
           getColumns(boardId),
           getTasks(boardId),
@@ -125,16 +123,19 @@ const KanbanBoard = () => {
         setBoard(boardData);
         setColumns(columnsData);
         setTasks(tasksData);
-      } catch (error) {
-        console.error(
-          "Failed to load board data:",
-          error
-        );
+        setIsOffline(false);
 
-        setError(
-          error.message ||
-            "Failed to load board data"
-        );
+        saveCache(boardId, { board: boardData, columns: columnsData, tasks: tasksData });
+      } catch (err) {
+        console.error("Failed to load board data:", err);
+
+        if (cached) {
+          // Already showing something from cache — flag it as stale
+          // instead of wiping the screen.
+          setIsOffline(true);
+        } else {
+          setError(err.message || "Failed to load board data");
+        }
       } finally {
         setLoading(false);
       }
@@ -144,32 +145,85 @@ const KanbanBoard = () => {
   }, [boardId]);
 
   /*
-   * Close more-options menu when clicking
-   * outside of it.
+   * Keep the cache fresh whenever the board's data changes, whether
+   * that change came from this tab or from a socket event.
+   */
+  useEffect(() => {
+    if (loading || !boardId) return;
+    saveCache(boardId, { board, columns, tasks });
+  }, [board, columns, tasks, boardId, loading]);
+
+  /*
+   * Real-time: join this board's room and react to what everyone else
+   * on it is doing. Each handler "upserts" so an update for a task/column
+   * we already have replaces it in place, and one we don't have yet gets
+   * added — this also makes it safe if our own change echoes back to us.
+   */
+  useEffect(() => {
+    if (!boardId) return;
+
+    socketService.joinBoard(boardId);
+
+    const upsertTask = (incoming) => {
+      setTasks((prev) => {
+        const exists = prev.some((t) => t.id === incoming.id);
+        return exists
+          ? prev.map((t) => (t.id === incoming.id ? incoming : t))
+          : [...prev, incoming];
+      });
+    };
+
+    const removeTask = (incoming) => {
+      setTasks((prev) => prev.filter((t) => t.id !== incoming.id));
+    };
+
+    const upsertColumn = (incoming) => {
+      setColumns((prev) => {
+        const exists = prev.some((c) => c.id === incoming.id);
+        return exists
+          ? prev.map((c) => (c.id === incoming.id ? incoming : c))
+          : [...prev, incoming];
+      });
+    };
+
+    const removeColumn = (incoming) => {
+      setColumns((prev) => prev.filter((c) => c.id !== incoming.id));
+    };
+
+    socketService.on("task:created", upsertTask);
+    socketService.on("task:updated", upsertTask);
+    socketService.on("task:moved", upsertTask);
+    socketService.on("task:deleted", removeTask);
+    socketService.on("column:created", upsertColumn);
+    socketService.on("column:updated", upsertColumn);
+    socketService.on("column:deleted", removeColumn);
+
+    return () => {
+      socketService.off("task:created", upsertTask);
+      socketService.off("task:updated", upsertTask);
+      socketService.off("task:moved", upsertTask);
+      socketService.off("task:deleted", removeTask);
+      socketService.off("column:created", upsertColumn);
+      socketService.off("column:updated", upsertColumn);
+      socketService.off("column:deleted", removeColumn);
+      socketService.leaveBoard(boardId);
+    };
+  }, [boardId]);
+
+  /*
+   * Close more-options menu when clicking outside of it.
    */
   useEffect(() => {
     if (!isMenuOpen) return;
 
     const handleClickOutside = (e) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
 
   /*
@@ -181,11 +235,7 @@ const KanbanBoard = () => {
     }
 
     return tasks.filter((task) =>
-      task.title
-        .toLowerCase()
-        .includes(
-          searchText.toLowerCase()
-        )
+      task.title.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [tasks, searchText]);
 
@@ -193,512 +243,251 @@ const KanbanBoard = () => {
    * Board statistics
    */
   const boardStats = useMemo(() => {
-    const totalTasks =
-      tasks.length;
+    const totalTasks = tasks.length;
+    const completed = tasks.filter((task) => task.completed).length;
 
-    const completed =
-      tasks.filter(
-        (task) => task.completed
-      ).length;
+    const progressColumnIds = columns
+      .filter((column) => column.color === "progress")
+      .map((column) => column.id);
 
-    const progressColumnIds =
-      columns
-        .filter(
-          (column) =>
-            column.color ===
-            "progress"
-        )
-        .map(
-          (column) => column.id
-        );
-
-    const inProgress =
-      tasks.filter((task) =>
-        progressColumnIds.includes(
-          task.columnId
-        )
-      ).length;
+    const inProgress = tasks.filter((task) =>
+      progressColumnIds.includes(task.columnId)
+    ).length;
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+    const overdue = tasks.filter((task) => {
+      if (task.completed) return false;
+      if (!task.dueDate) return false;
 
-    const overdue =
-      tasks.filter((task) => {
-        if (task.completed) {
-          return false;
-        }
+      const dueDate = new Date(`${task.dueDate}T00:00:00`);
+      if (Number.isNaN(dueDate.getTime())) return false;
 
-        if (!task.dueDate) {
-          return false;
-        }
+      return dueDate < today;
+    }).length;
 
-        const dueDate =
-          new Date(
-            `${task.dueDate}T00:00:00`
-          );
-
-        if (
-          Number.isNaN(
-            dueDate.getTime()
-          )
-        ) {
-          return false;
-        }
-
-        return dueDate < today;
-      }).length;
-
-    return {
-      totalTasks,
-      inProgress,
-      completed,
-      overdue,
-    };
+    return { totalTasks, inProgress, completed, overdue };
   }, [tasks, columns]);
 
   /*
    * Calculate task count for every column.
    */
-  const columnsWithCounts =
-    useMemo(() => {
-      return columns.map(
-        (column) => ({
-          ...column,
-
-          count: tasks.filter(
-            (task) =>
-              task.columnId ===
-              column.id
-          ).length,
-        })
-      );
-    }, [columns, tasks]);
+  const columnsWithCounts = useMemo(() => {
+    return columns.map((column) => ({
+      ...column,
+      count: tasks.filter((task) => task.columnId === column.id).length,
+    }));
+  }, [columns, tasks]);
 
   /*
    * Create task
    */
-  const handleCreateTask =
-    async (newTask) => {
-      if (!boardId) {
-        setError(
-          "Board ID is missing"
-        );
-        return;
+  const handleCreateTask = async (newTask) => {
+    if (!boardId) {
+      setError("Board ID is missing");
+      return;
+    }
+
+    try {
+      if (columns.length === 0) {
+        throw new Error("Create a column before creating a task");
       }
 
-      try {
-        /*
-         * New tasks go into the first
-         * available column.
-         */
-        if (columns.length === 0) {
-          throw new Error(
-            "Create a column before creating a task"
-          );
-        }
+      const firstColumn = columns[0];
 
-        const firstColumn =
-          columns[0];
+      const task = await createTask(boardId, {
+        title: newTask.name,
+        dueDate: newTask.dueDate || null,
+        type: newTask.type || "Development",
+        columnId: firstColumn.id,
+        createdBy: CURRENT_USER_ID,
+      });
 
-        const task =
-          await createTask(
-            boardId,
-            {
-              title: newTask.name,
-
-              dueDate:
-                newTask.dueDate ||
-                null,
-
-              type:
-                newTask.type ||
-                "Development",
-
-              columnId:
-                firstColumn.id,
-
-              createdBy:
-                CURRENT_USER_ID,
-            }
-          );
-
-        setTasks(
-          (prevTasks) => [
-            ...prevTasks,
-            task,
-          ]
-        );
-
-        setIsCreateTaskModalOpen(
-          false
-        );
-      } catch (error) {
-        console.error(
-          "Failed to create task:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to create task"
-        );
-      }
-    };
+      setTasks((prevTasks) => [...prevTasks, task]);
+      setIsCreateTaskModalOpen(false);
+    } catch (err) {
+      console.error("Failed to create task:", err);
+      setError(err.message || "Failed to create task");
+    }
+  };
 
   /*
    * Create column
    */
-  const handleCreateColumn =
-    async (columnName) => {
-      if (!boardId) {
-        setError(
-          "Board ID is missing"
-        );
-        return;
-      }
+  const handleCreateColumn = async (columnName) => {
+    if (!boardId) {
+      setError("Board ID is missing");
+      return;
+    }
 
-      try {
-        const newColumn =
-          await createColumn(
-            boardId,
-            {
-              title: columnName,
-            }
-          );
+    try {
+      const newColumn = await createColumn(boardId, { title: columnName });
 
-        setColumns(
-          (prevColumns) => [
-            ...prevColumns,
-            newColumn,
-          ]
-        );
-
-        setIsCreateColumnModalOpen(
-          false
-        );
-      } catch (error) {
-        console.error(
-          "Failed to create column:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to create column"
-        );
-      }
-    };
+      setColumns((prevColumns) => [...prevColumns, newColumn]);
+      setIsCreateColumnModalOpen(false);
+    } catch (err) {
+      console.error("Failed to create column:", err);
+      setError(err.message || "Failed to create column");
+    }
+  };
 
   /*
    * Open edit-column modal
    */
-  const handleEditColumn =
-    (column) => {
-      setSelectedColumn(column);
-      setIsEditColumnModalOpen(
-        true
-      );
-    };
+  const handleEditColumn = (column) => {
+    setSelectedColumn(column);
+    setIsEditColumnModalOpen(true);
+  };
 
   /*
    * Update column
    */
-  const handleUpdateColumn =
-    async (newName) => {
-      if (!selectedColumn) {
-        return;
-      }
+  const handleUpdateColumn = async (newName) => {
+    if (!selectedColumn) return;
 
-      try {
-        const updatedColumn =
-          await updateColumn(
-            selectedColumn.id,
-            {
-              title: newName,
-            }
-          );
+    try {
+      const updatedColumn = await updateColumn(selectedColumn.id, { title: newName });
 
-        setColumns(
-          (prevColumns) =>
-            prevColumns.map(
-              (column) =>
-                column.id ===
-                updatedColumn.id
-                  ? updatedColumn
-                  : column
-            )
-        );
+      setColumns((prevColumns) =>
+        prevColumns.map((column) =>
+          column.id === updatedColumn.id ? updatedColumn : column
+        )
+      );
 
-        setIsEditColumnModalOpen(
-          false
-        );
-
-        setSelectedColumn(null);
-      } catch (error) {
-        console.error(
-          "Failed to update column:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to update column"
-        );
-      }
-    };
+      setIsEditColumnModalOpen(false);
+      setSelectedColumn(null);
+    } catch (err) {
+      console.error("Failed to update column:", err);
+      setError(err.message || "Failed to update column");
+    }
+  };
 
   /*
    * Open delete-column confirmation
    */
-  const handleDeleteColumn =
-    (column) => {
-      setColumnToDelete(column);
-    };
+  const handleDeleteColumn = (column) => {
+    setColumnToDelete(column);
+  };
 
   /*
    * Delete column
    */
-  const confirmDeleteColumn =
-    async () => {
-      if (!columnToDelete) {
-        return;
-      }
+  const confirmDeleteColumn = async () => {
+    if (!columnToDelete) return;
+    if (columnToDelete.count > 0) return;
 
-      /*
-       * Don't even send the request if
-       * the column still contains tasks.
-       */
-      if (
-        columnToDelete.count > 0
-      ) {
-        return;
-      }
+    try {
+      await deleteColumn(columnToDelete.id);
 
-      try {
-        await deleteColumn(
-          columnToDelete.id
-        );
+      setColumns((prevColumns) =>
+        prevColumns.filter((column) => column.id !== columnToDelete.id)
+      );
 
-        setColumns(
-          (prevColumns) =>
-            prevColumns.filter(
-              (column) =>
-                column.id !==
-                columnToDelete.id
-            )
-        );
-
-        setColumnToDelete(null);
-      } catch (error) {
-        console.error(
-          "Failed to delete column:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to delete column"
-        );
-      }
-    };
-
-  const cancelDeleteColumn =
-    () => {
       setColumnToDelete(null);
-    };
+    } catch (err) {
+      console.error("Failed to delete column:", err);
+      setError(err.message || "Failed to delete column");
+    }
+  };
+
+  const cancelDeleteColumn = () => {
+    setColumnToDelete(null);
+  };
 
   /*
-   * Move task between columns
+   * Move task between columns. Sends the task's last-known version so the
+   * server can detect if someone else changed it in the meantime.
    */
-  const handleTaskDrop =
-    async (
-      taskId,
-      targetColumnId
-    ) => {
-      try {
-        const updatedTask =
-          await moveTask(
-            taskId,
-            targetColumnId
+  const handleTaskDrop = async (taskId, targetColumnId) => {
+    const currentTask = tasks.find((t) => t.id === taskId);
+
+    try {
+      const updatedTask = await moveTask(taskId, targetColumnId, currentTask?.version);
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+      );
+    } catch (err) {
+      console.error("Failed to move task:", err);
+
+      if (err.conflict) {
+        setConflictNotice(err.message || "This was changed by someone else — reload.");
+
+        // Snap the card back to whatever the server actually has.
+        if (err.current) {
+          setTasks((prevTasks) =>
+            prevTasks.map((task) => (task.id === err.current.id ? err.current : task))
           );
-
-        setTasks(
-          (prevTasks) =>
-            prevTasks.map(
-              (task) =>
-                task.id ===
-                updatedTask.id
-                  ? updatedTask
-                  : task
-            )
-        );
-      } catch (error) {
-        console.error(
-          "Failed to move task:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to move task"
-        );
+        }
+        return;
       }
-    };
+
+      setError(err.message || "Failed to move task");
+    }
+  };
 
   /*
-   * Reorder columns.
-   *
-   * This also saves the new position
-   * to MongoDB.
+   * Reorder columns. Also saves the new position to MongoDB.
    */
-  const handleColumnDrop =
-    async (
-      draggedColumnId,
-      targetColumnId
-    ) => {
-      if (
-        draggedColumnId ===
-        targetColumnId
-      ) {
-        return;
-      }
+  const handleColumnDrop = async (draggedColumnId, targetColumnId) => {
+    if (draggedColumnId === targetColumnId) return;
 
-      const fromIndex =
-        columns.findIndex(
-          (column) =>
-            column.id ===
-            draggedColumnId
-        );
+    const fromIndex = columns.findIndex((column) => column.id === draggedColumnId);
+    const toIndex = columns.findIndex((column) => column.id === targetColumnId);
 
-      const toIndex =
-        columns.findIndex(
-          (column) =>
-            column.id ===
-            targetColumnId
-        );
+    if (fromIndex === -1 || toIndex === -1) return;
 
-      if (
-        fromIndex === -1 ||
-        toIndex === -1
-      ) {
-        return;
-      }
+    const reorderedColumns = [...columns];
+    const [movedColumn] = reorderedColumns.splice(fromIndex, 1);
+    reorderedColumns.splice(toIndex, 0, movedColumn);
 
-      const reorderedColumns = [
-        ...columns,
-      ];
+    const positionedColumns = reorderedColumns.map((column, index) => ({
+      ...column,
+      position: index,
+    }));
 
-      const [
-        movedColumn,
-      ] =
-        reorderedColumns.splice(
-          fromIndex,
-          1
-        );
+    setColumns(positionedColumns);
 
-      reorderedColumns.splice(
-        toIndex,
-        0,
-        movedColumn
+    try {
+      await Promise.all(
+        positionedColumns.map((column, index) =>
+          updateColumn(column.id, { position: index })
+        )
       );
-
-      const positionedColumns =
-        reorderedColumns.map(
-          (column, index) => ({
-            ...column,
-            position: index,
-          })
-        );
-
-      /*
-       * Update UI immediately.
-       */
-      setColumns(
-        positionedColumns
-      );
-
-      /*
-       * Save positions to database.
-       */
-      try {
-        await Promise.all(
-          positionedColumns.map(
-            (column, index) =>
-              updateColumn(
-                column.id,
-                {
-                  position: index,
-                }
-              )
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Failed to save column order:",
-          error
-        );
-
-        setError(
-          "Column order could not be saved"
-        );
-      }
-    };
+    } catch (err) {
+      console.error("Failed to save column order:", err);
+      setError("Column order could not be saved");
+    }
+  };
 
   /*
    * Open delete-task confirmation
    */
-  const handleDeleteTask =
-    (task) => {
-      setTaskToDelete(task);
-    };
+  const handleDeleteTask = (task) => {
+    setTaskToDelete(task);
+  };
 
   /*
    * Delete task
    */
-  const confirmDeleteTask =
-    async () => {
-      if (!taskToDelete) {
-        return;
-      }
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
 
-      try {
-        await deleteTask(
-          taskToDelete.id
-        );
+    try {
+      await deleteTask(taskToDelete.id);
 
-        setTasks(
-          (prevTasks) =>
-            prevTasks.filter(
-              (task) =>
-                task.id !==
-                taskToDelete.id
-            )
-        );
-
-        setTaskToDelete(null);
-      } catch (error) {
-        console.error(
-          "Failed to delete task:",
-          error
-        );
-
-        setError(
-          error.message ||
-            "Failed to delete task"
-        );
-      }
-    };
-
-  const cancelDeleteTask =
-    () => {
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskToDelete.id));
       setTaskToDelete(null);
-    };
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      setError(err.message || "Failed to delete task");
+    }
+  };
+
+  const cancelDeleteTask = () => {
+    setTaskToDelete(null);
+  };
 
   /*
    * Loading state
@@ -707,9 +496,7 @@ const KanbanBoard = () => {
     return (
       <div className="kanban-page">
         <main className="kanban-main">
-          <p>
-            Loading board...
-          </p>
+          <p>Loading board...</p>
         </main>
       </div>
     );
@@ -721,297 +508,170 @@ const KanbanBoard = () => {
 
         {/* Header */}
         <header className="board-header">
-
-          <h1>
-            {board?.name ||
-              "Task Board"}
-          </h1>
+          <h1>{board?.name || "Task Board"}</h1>
 
           <div className="board-header-actions">
-
             <div className="search-box">
               <Search size={14} />
-
               <input
                 type="text"
                 placeholder="Search tasks..."
                 value={searchText}
-                onChange={(e) =>
-                  setSearchText(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => setSearchText(e.target.value)}
               />
             </div>
 
             <button
               className="header-button"
-              onClick={() =>
-                setIsCreateColumnModalOpen(
-                  true
-                )
-              }
+              onClick={() => setIsCreateColumnModalOpen(true)}
             >
               <Plus size={18} />
-              <span>
-                New Column
-              </span>
+              <span>New Column</span>
             </button>
 
             <button
               className="header-button"
-              onClick={() =>
-                setIsCreateTaskModalOpen(
-                  true
-                )
-              }
+              onClick={() => setIsCreateTaskModalOpen(true)}
             >
               <Plus size={18} />
-              <span>
-                New Task
-              </span>
+              <span>New Task</span>
             </button>
 
-            <div
-              className="header-more-wrapper"
-              ref={menuRef}
-            >
+            <div className="header-more-wrapper" ref={menuRef}>
               <button
                 className="header-more-btn"
-                onClick={() =>
-                  setIsMenuOpen(
-                    (prev) =>
-                      !prev
-                  )
-                }
+                onClick={() => setIsMenuOpen((prev) => !prev)}
                 aria-label="More options"
               >
-                <MoreVertical
-                  size={20}
-                />
+                <MoreVertical size={20} />
               </button>
 
               {isMenuOpen && (
-                <ul
-                  className="header-more-menu"
-                  role="menu"
-                >
+                <ul className="header-more-menu" role="menu">
                   <li
                     className="header-more-menu-item"
                     role="menuitem"
-                    onClick={() =>
-                      setIsMenuOpen(
-                        false
-                      )
-                    }
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    <ClipboardList
-                      size={16}
-                    />
+                    <ClipboardList size={16} />
                     Activity Log
                   </li>
                 </ul>
               )}
             </div>
-
           </div>
         </header>
 
         {/* Board summary */}
         <section className="board-summary">
-
           <div className="board-name">
-
             <div className="board-document-icon">
-              <FileText
-                size={31}
-                strokeWidth={2}
-              />
+              <FileText size={31} strokeWidth={2} />
             </div>
-
-            <h2>
-              {board?.name ||
-                "Task Board"}
-            </h2>
-
+            <h2>{board?.name || "Task Board"}</h2>
           </div>
 
           <div className="stat-card">
-            <span>
-              Total tasks
-            </span>
-
-            <strong>
-              {boardStats.totalTasks}
-            </strong>
+            <span>Total tasks</span>
+            <strong>{boardStats.totalTasks}</strong>
           </div>
 
           <div className="stat-card">
-            <span>
-              In progress
-            </span>
-
-            <strong>
-              {boardStats.inProgress}
-            </strong>
+            <span>In progress</span>
+            <strong>{boardStats.inProgress}</strong>
           </div>
 
           <div className="stat-card">
-            <span>
-              Completed
-            </span>
-
-            <strong>
-              {boardStats.completed}
-            </strong>
+            <span>Completed</span>
+            <strong>{boardStats.completed}</strong>
           </div>
 
           <div className="stat-card overdue">
-            <span>
-              Overdue
-            </span>
-
-            <strong>
-              {boardStats.overdue}
-            </strong>
+            <span>Overdue</span>
+            <strong>{boardStats.overdue}</strong>
           </div>
-
         </section>
 
-        {/* Error */}
-        {error && (
+        {/* Offline / cache notice */}
+        {isOffline && (
           <div className="kanban-error">
-            {error}
+            Showing saved data — couldn't reach the server. Changes made now may not be saved.
           </div>
         )}
 
+        {/* Conflict notice */}
+        {conflictNotice && (
+          <div className="kanban-error">
+            {conflictNotice}{" "}
+            <button onClick={() => window.location.reload()}>Reload</button>{" "}
+            <button onClick={() => setConflictNotice("")}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && <div className="kanban-error">{error}</div>}
+
         {/* Kanban board */}
         <section className="kanban-board">
-
-          {columnsWithCounts.map(
-            (column) => (
-              <KanbanColumn
-                key={column.id}
-                column={column}
-                tasks={filteredTasks.filter(
-                  (task) =>
-                    task.columnId ===
-                    column.id
-                )}
-                onEditColumn={
-                  handleEditColumn
-                }
-                onDeleteColumn={
-                  handleDeleteColumn
-                }
-                onTaskDrop={
-                  handleTaskDrop
-                }
-                onDeleteTask={
-                  handleDeleteTask
-                }
-                onColumnDrop={
-                  handleColumnDrop
-                }
-              />
-            )
-          )}
-
+          {columnsWithCounts.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              tasks={filteredTasks.filter((task) => task.columnId === column.id)}
+              onEditColumn={handleEditColumn}
+              onDeleteColumn={handleDeleteColumn}
+              onTaskDrop={handleTaskDrop}
+              onDeleteTask={handleDeleteTask}
+              onColumnDrop={handleColumnDrop}
+            />
+          ))}
         </section>
-
       </main>
 
-      {/* Create Task */}
       <CreateTaskModal
-        isOpen={
-          isCreateTaskModalOpen
-        }
-        onClose={() =>
-          setIsCreateTaskModalOpen(
-            false
-          )
-        }
-        onSave={
-          handleCreateTask
-        }
+        isOpen={isCreateTaskModalOpen}
+        onClose={() => setIsCreateTaskModalOpen(false)}
+        onSave={handleCreateTask}
       />
 
-      {/* Create Column */}
       <CreateColumnModal
-        isOpen={
-          isCreateColumnModalOpen
-        }
-        onClose={() =>
-          setIsCreateColumnModalOpen(
-            false
-          )
-        }
-        onCreate={
-          handleCreateColumn
-        }
+        isOpen={isCreateColumnModalOpen}
+        onClose={() => setIsCreateColumnModalOpen(false)}
+        onCreate={handleCreateColumn}
       />
 
-      {/* Edit Column */}
       {selectedColumn && (
         <EditColumnModal
-          isOpen={
-            isEditColumnModalOpen
-          }
-          initialName={
-            selectedColumn.title
-          }
+          isOpen={isEditColumnModalOpen}
+          initialName={selectedColumn.title}
           onClose={() => {
-            setIsEditColumnModalOpen(
-              false
-            );
-
-            setSelectedColumn(
-              null
-            );
+            setIsEditColumnModalOpen(false);
+            setSelectedColumn(null);
           }}
-          onSave={
-            handleUpdateColumn
-          }
+          onSave={handleUpdateColumn}
         />
       )}
 
-      {/* Delete Column */}
       <ConfirmDialog
-        isOpen={
-          !!columnToDelete
-        }
+        isOpen={!!columnToDelete}
         title="Delete column?"
         message={
           columnToDelete
-            ? columnToDelete.count >
-              0
+            ? columnToDelete.count > 0
               ? `"${columnToDelete.title}" still has ${columnToDelete.count} task${
-                  columnToDelete.count ===
-                  1
-                    ? ""
-                    : "s"
+                  columnToDelete.count === 1 ? "" : "s"
                 }. Remove or move all tasks out of this column before deleting it.`
               : `Are you sure you want to delete "${columnToDelete.title}"? This action cannot be undone.`
             : ""
         }
         confirmLabel="Delete"
-        confirmDisabled={
-          !!columnToDelete &&
-          columnToDelete.count > 0
-        }
-        onConfirm={
-          confirmDeleteColumn
-        }
-        onCancel={
-          cancelDeleteColumn
-        }
+        confirmDisabled={!!columnToDelete && columnToDelete.count > 0}
+        onConfirm={confirmDeleteColumn}
+        onCancel={cancelDeleteColumn}
       />
 
-      {/* Delete Task */}
       <ConfirmDialog
-        isOpen={
-          !!taskToDelete
-        }
+        isOpen={!!taskToDelete}
         title="Delete task?"
         message={
           taskToDelete
@@ -1019,17 +679,11 @@ const KanbanBoard = () => {
             : ""
         }
         confirmLabel="Delete"
-        onConfirm={
-          confirmDeleteTask
-        }
-        onCancel={
-          cancelDeleteTask
-        }
+        onConfirm={confirmDeleteTask}
+        onCancel={cancelDeleteTask}
       />
-
     </div>
   );
 };
 
 export default KanbanBoard;
-

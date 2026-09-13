@@ -1,7 +1,10 @@
 const express = require("express");
 const taskController = require("./task.controller");
+const { requireAuth } = require("../../middleware/auth");
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 // GET all tasks for a board  → /api/task/board/:boardId
 router.get("/board/:boardId", taskController.getTasks);
