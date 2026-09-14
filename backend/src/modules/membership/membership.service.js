@@ -3,6 +3,8 @@ const WorkspaceInvitation = require("./invitation.model");
 // Senali's real User model (auth module). Adjust the path if her file lives
 // elsewhere — the model registered there is named "User".
 const User = require("../auth/user.model");
+// Dilmani's board member model — read only, so we can tell who is already on a board.
+const BoardMember = require("../board/boardMember.model");
 
 // NOTE: for now we work within a single workspace. Replace this with the
 // real workspace id once workspace selection is wired in. Your old mock
@@ -148,9 +150,37 @@ const respondToInvitation = async (invitationId, action, userId) => {
   };
 };
 
+// Workspace members who are NOT already on this board.
+// Used by Dilmani's "add a workspace member to a board" feature.
+// She passes both ids, because the board document is hers, not mine.
+const getAddableMembers = async (workspaceId, boardId) => {
+  // 1. everyone in this workspace
+  const workspaceMembers = await WorkspaceMember.find({
+    workspace: workspaceId,
+  })
+    .populate("user", "firstName lastName email profileImage")
+    .lean();
+
+  // 2. everyone already on this board
+  const boardMembers = await BoardMember.find({ board: boardId })
+    .select("user")
+    .lean();
+
+  // 3. put the board user ids in a Set for fast lookup.
+  //    String() matters — Mongo ids are objects, and comparing two objects
+  //    with === is always false, which is what makes a list come back empty.
+  const alreadyOnBoard = new Set(boardMembers.map((m) => String(m.user)));
+
+  // 4. keep only the ones not already on the board
+  return workspaceMembers.filter(
+    (m) => m.user && !alreadyOnBoard.has(String(m.user._id))
+  );
+};
+
 module.exports = {
   getMembers,
   createInvitation,
   getInvitationsForUser,
   respondToInvitation,
+  getAddableMembers,
 };
