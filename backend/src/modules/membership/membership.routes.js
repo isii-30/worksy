@@ -1,7 +1,11 @@
 const express = require("express");
 const membershipController = require("./membership.controller");
+const { requireAuth } = require("../../middleware/auth");
 
 const router = express.Router();
+
+// Every route below needs a valid token
+router.use(requireAuth);
 
 // Get all workspace members
 router.get("/members", membershipController.getMembers);
